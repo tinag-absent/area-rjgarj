@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>港湾部門 - 海蝕機関</title>
+  <link rel="icon" type="image/png" href="../images/favicon.png">
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <!-- Sidebar content will be loaded by sidebar.js -->
+    </aside>
+
+    <button class="mobile-menu-toggle">
+      <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+    <div class="mobile-menu-overlay"></div>
+
+    <main class="main-content scanline">
+      <div class="container">
+        <div class="space-y-12 animate-fadeIn">
+          <a href="../divisions.html" class="btn btn-outline" style="background-color: transparent; color: var(--muted-foreground); display: inline-flex; padding: 0.5rem 1rem;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-right: 0.5rem;">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+            組織図に戻る
+          </a>
+
+          <div class="flex gap-8 items-start" style="flex-wrap: wrap;">
+            <div style="padding: 1.5rem; border: 1px solid rgba(59, 130, 246, 0.5); background-color: rgba(26, 39, 56, 0.4);">
+              <svg width="64" height="64" fill="none" stroke="rgb(59, 130, 246)" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+              </svg>
+            </div>
+            
+            <div class="space-y-4" style="flex: 1; min-width: 300px;">
+              <span class="badge" style="border-color: rgba(59, 130, 246, 0.5); color: rgb(59, 130, 246); background-color: transparent;">
+                DEPARTMENT DATA SHEET
+              </span>
+              <h1 class="glitch-text" style="font-size: 3rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: -0.025em;">
+                港湾部門
+              </h1>
+              <p class="font-mono text-muted">Port Division</p>
+            </div>
+          </div>
+
+          <div class="card" style="background-color: rgba(26, 39, 56, 0.3); border-color: rgba(255, 255, 255, 0.05); padding: 1.5rem;">
+            <div class="card-header" style="padding: 0; border-bottom: 1px solid rgba(0, 255, 255, 0.2); padding-bottom: 0.5rem;">
+              <h2 class="font-mono text-primary" style="font-size: 1.125rem; text-transform: uppercase;">部門概要</h2>
+            </div>
+            <div class="card-content" style="padding: 0; padding-top: 1rem;">
+              <p style="font-size: 1.125rem; color: rgba(255, 255, 255, 0.8); line-height: 1.75;">
+                境界の入り口となる土地や施設を24時間監視し、未認可の不根（ふね）や海蝕実体の侵入を阻止する。
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2">
+            <div class="card" style="background-color: rgba(0, 0, 0, 0.4); border-color: rgba(255, 255, 255, 0.05); padding: 1.5rem;">
+              <div class="card-header" style="padding: 0;">
+                <h3 class="font-mono" style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.5); text-transform: uppercase;">主要業務・役割</h3>
+              </div>
+              <div class="card-content" style="padding: 0; padding-top: 1rem;">
+                <ul class="space-y-4">
+                  <li class="flex gap-4" style="font-size: 0.875rem; color: var(--muted-foreground);">
+                    <span class="font-mono" style="color: rgb(59, 130, 246);">01.</span>
+                    <span>24時間体制の次元境界ゲート監視</span>
+                  </li>
+                  <li class="flex gap-4" style="font-size: 0.875rem; color: var(--muted-foreground);">
+                    <span class="font-mono" style="color: rgb(59, 130, 246);">02.</span>
+                    <span>未認可「不根（ふね）」の検知と強制送還</span>
+                  </li>
+                  <li class="flex gap-4" style="font-size: 0.875rem; color: var(--muted-foreground);">
+                    <span class="font-mono" style="color: rgb(59, 130, 246);">03.</span>
+                    <span>港湾施設の防衛システム運用</span>
+                  </li>
+                  <li class="flex gap-4" style="font-size: 0.875rem; color: var(--muted-foreground);">
+                    <span class="font-mono" style="color: rgb(59, 130, 246);">04.</span>
+                    <span>境界周辺の定点観測データの収集</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="card" style="background-color: rgba(127, 29, 29, 0.05); border-color: rgba(239, 68, 68, 0.2); padding: 1.5rem;">
+              <div class="card-header" style="padding: 0;">
+                <h3 class="font-mono text-destructive" style="font-size: 0.875rem; text-transform: uppercase;">警戒事項</h3>
+              </div>
+              <div class="card-content" style="padding: 0; padding-top: 1rem;">
+                <div class="font-mono" style="padding: 1rem; background-color: rgba(0, 0, 0, 0.4); border-left: 2px solid var(--destructive); font-size: 0.75rem; color: rgba(239, 68, 68, 0.8); line-height: 1.75;">
+                  [WARNING]<br />
+                  当該部門のデータは極秘扱いです。未認可の外部持ち出し、または第三者への開示は海蝕プロトコル第12条に基づき厳罰の対象となります。
+                  <br /><br />
+                  [RESTRICTION]<br />
+                  収束任務中の通信ログはすべて記録・監視されています。
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="../js/sidebar.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/progress.js"></script>
+  <script src="../js/level-messages.js"></script>
+  <script src="../js/daily-login.js"></script>
+</body>
+</html>
