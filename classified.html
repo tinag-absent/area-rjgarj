@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>機密情報 - 海蝕機関</title>
+  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/classified.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <!-- Sidebar content will be loaded by sidebar.js -->
+    </aside>
+    <button class="mobile-menu-toggle">
+      <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+    <div class="mobile-menu-overlay"></div>
+    <main class="main-content scanline">
+      <div class="container">
+        <div class="space-y-12 animate-fadeIn">
+          <div class="classified-header">
+            <div class="classified-label">LEVEL 5 CLASSIFIED</div>
+            <h1 class="classified-title">機関員個人情報データベース</h1>
+            <p class="classified-subtitle">Personnel Records & Private Archives - 最高機密</p>
+          </div>
+          <div class="classified-warning">
+            <svg class="warning-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <div class="warning-title">WARNING - 最高機密情報</div>
+            <div class="warning-text">
+              このデータベースには機関員の履歴書および私的な日記が含まれています。<br>
+              無許可のアクセス・複製・配布は厳重に禁止されています。<br>
+              全てのアクセスは記録され、監視されています。
+            </div>
+          </div>
+          <div class="stats-grid" id="statsGrid"></div>
+          <div class="search-section">
+            <div class="search-bar">
+              <input type="text" id="searchInput" class="search-input" placeholder="機関員名、ID、部門、専門分野で検索...">
+              <button class="search-btn" id="searchBtn">検索</button>
+            </div>
+            <div class="filter-tabs">
+              <button class="filter-tab active" data-filter="all">全て</button>
+              <button class="filter-tab" data-filter="収束部門">収束部門</button>
+              <button class="filter-tab" data-filter="支援部門">支援部門</button>
+              <button class="filter-tab" data-filter="工作部門">工作部門</button>
+              <button class="filter-tab" data-filter="外事部門">外事部門</button>
+              <button class="filter-tab" data-filter="港湾部門">港湾部門</button>
+            </div>
+          </div>
+          <div class="result-count-text">
+            <span id="resultCount">0</span> 名の機関員が見つかりました
+          </div>
+          <div class="personnel-grid" id="personnelGrid"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="./js/sidebar.js"></script>
+  <script src="./js/main.js"></script>
+  <script src="./js/modal.js"></script>
+  <script src="./js/progress.js"></script>
+  <script src="./js/personnel-database.js"></script>
+  <script src="./js/classified.js"></script>
+</body>
+</html>

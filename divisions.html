@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>各部門情報 - 海蝕機関</title>
+  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <!-- Sidebar content will be loaded by sidebar.js -->
+    </aside>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle">
+      <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content scanline">
+      <div class="container">
+        <div class="space-y-12 animate-fadeIn">
+          
+          <!-- Header -->
+          <div class="space-y-4" style="border-left: 4px solid var(--primary); padding-left: 1rem;">
+            <h1 style="font-size: 2.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: white; text-transform: uppercase; letter-spacing: -0.025em;">
+              機関組織図
+            </h1>
+            <p class="font-mono" style="font-size: 0.875rem; color: var(--muted-foreground);">
+              内部資料：極秘
+            </p>
+          </div>
+
+          <!-- Divisions Grid -->
+          <div class="grid grid-cols-3">
+            
+            <!-- Division 1: Convergence -->
+            <a href="./divisions/convergence.html" style="text-decoration: none; color: inherit;">
+            <div class="division-card card" style="background-color: rgba(26, 39, 56, 0.4); border-color: rgba(255, 255, 255, 0.05); transition: all 0.3s; cursor: pointer;">
+              <div style="position: absolute; top: 1rem; right: 1rem; opacity: 0.1;">
+                <svg width="96" height="96" fill="none" stroke="rgb(239, 68, 68)" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              
+              <div class="card-header">
+                <div class="flex justify-between items-start mb-2">
+                  <span class="badge" style="border-color: rgba(239, 68, 68, 0.5); color: rgb(239, 68, 68); background-color: transparent;">
+                    DIV-01
+                  </span>
+                  <svg width="20" height="20" fill="none" stroke="rgb(239, 68, 68)" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <h3 style="font-size: 1.25rem; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; margin-bottom: 0.5rem;">
+                  収束部門
+                </h3>
+                <p style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.4); font-weight: 600; letter-spacing: 0.05em;">
+                  Convergence Division
+                </p>
+              </div>
+              
+              <div class="card-content">
+                <p style="font-size: 0.875rem; color: var(--muted-foreground); line-height: 1.75; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 1rem;">
+                  海蝕現象の前線に立つ部門。モジュールと呼ばれる収束装置を携行し、現場での即応処置を行う。
+                </p>
+              </div>
+              
+              <div style="height: 0.25rem; width: 100%; background-color: rgba(239, 68, 68, 0.1); margin-top: auto;">
+                <div style="height: 100%; width: 0; transition: width 0.7s; background-color: rgb(239, 68, 68);"></div>
+              </div>
+            </div>
+            </a>
+
+            <!-- Division 2: Support -->
+            <a href="./divisions/support.html" style="text-decoration: none; color: inherit;">
+            <div class="division-card card" style="background-color: rgba(26, 39, 56, 0.4); border-color: rgba(255, 255, 255, 0.05); transition: all 0.3s; cursor: pointer;">
+              <div style="position: absolute; top: 1rem; right: 1rem; opacity: 0.1;">
+                <svg width="96" height="96" fill="none" stroke="rgb(16, 185, 129)" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                </svg>
+              </div>
+              
+              <div class="card-header">
+                <div class="flex justify-between items-start mb-2">
+                  <span class="badge" style="border-color: rgba(16, 185, 129, 0.5); color: rgb(16, 185, 129); background-color: transparent;">
+                    DIV-02
+                  </span>
+                  <svg width="20" height="20" fill="none" stroke="rgb(16, 185, 129)" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                  </svg>
+                </div>
+                <h3 style="font-size: 1.25rem; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; margin-bottom: 0.5rem;">
+                  支援部門
+                </h3>
+                <p style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.4); font-weight: 600; letter-spacing: 0.05em;">
+                  Support Division
+                </p>
+              </div>
+              
+              <div class="card-content">
+                <p style="font-size: 0.875rem; color: var(--muted-foreground); line-height: 1.75; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 1rem;">
+                  現地オペレーションの調整やデータ解析、海蝕員の帰還後ケアを担当。状況に応じて現場への同行支援も実施する。
+                </p>
+              </div>
+              
+              <div style="height: 0.25rem; width: 100%; background-color: rgba(16, 185, 129, 0.1); margin-top: auto;">
+                <div style="height: 100%; width: 0; transition: width 0.7s; background-color: rgb(16, 185, 129);"></div>
+              </div>
+            </div>
+            </a>
+
+            <!-- Division 3: Engineering -->
+            <a href="./divisions/engineering.html" style="text-decoration: none; color: inherit;">
+            <div class="division-card card" style="background-color: rgba(26, 39, 56, 0.4); border-color: rgba(255, 255, 255, 0.05); transition: all 0.3s; cursor: pointer;">
+              <div style="position: absolute; top: 1rem; right: 1rem; opacity: 0.1;">
+                <svg width="96" height="96" fill="none" stroke="rgb(249, 115, 22)" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+              </div>
+              
+              <div class="card-header">
+                <div class="flex justify-between items-start mb-2">
+                  <span class="badge" style="border-color: rgba(249, 115, 22, 0.5); color: rgb(249, 115, 22); background-color: transparent;">
+                    DIV-03
+                  </span>
+                  <svg width="20" height="20" fill="none" stroke="rgb(249, 115, 22)" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  </svg>
+                </div>
+                <h3 style="font-size: 1.25rem; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; margin-bottom: 0.5rem;">
+                  工作部門
+                </h3>
+                <p style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.4); font-weight: 600; letter-spacing: 0.05em;">
+                  Engineering Division
+                </p>
+              </div>
+              
+              <div class="card-content">
+                <p style="font-size: 0.875rem; color: var(--muted-foreground); line-height: 1.75; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 1rem;">
+                  回収された海蝕実体や残滓を検証し、その特性をモジュールへ転用。部室・消耗品・小物類の製作も兼任する。
+                </p>
+              </div>
+              
+              <div style="height: 0.25rem; width: 100%; background-color: rgba(249, 115, 22, 0.1); margin-top: auto;">
+                <div style="height: 100%; width: 0; transition: width 0.7s; background-color: rgb(249, 115, 22);"></div>
+              </div>
+            </div>
+            </a>
+
+            <!-- Division 4: Foreign Affairs -->
+            <a href="./divisions/foreign.html" style="text-decoration: none; color: inherit;">
+            <div class="division-card card" style="background-color: rgba(26, 39, 56, 0.4); border-color: rgba(255, 255, 255, 0.05); transition: all 0.3s; cursor: pointer;">
+              <div style="position: absolute; top: 1rem; right: 1rem; opacity: 0.1;">
+                <svg width="96" height="96" fill="none" stroke="rgb(168, 85, 247)" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+              
+              <div class="card-header">
+                <div class="flex justify-between items-start mb-2">
+                  <span class="badge" style="border-color: rgba(168, 85, 247, 0.5); color: rgb(168, 85, 247); background-color: transparent;">
+                    DIV-04
+                  </span>
+                  <svg width="20" height="20" fill="none" stroke="rgb(168, 85, 247)" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+                <h3 style="font-size: 1.25rem; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; margin-bottom: 0.5rem;">
+                  外事部門
+                </h3>
+                <p style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.4); font-weight: 600; letter-spacing: 0.05em;">
+                  Foreign Affairs
+                </p>
+              </div>
+              
+              <div class="card-content">
+                <p style="font-size: 0.875rem; color: var(--muted-foreground); line-height: 1.75; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 1rem;">
+                  行政・報道機関・階底次元住民との折衝やメディア操作を行う。スカウトや経理業務を担当することもある。
+                </p>
+              </div>
+              
+              <div style="height: 0.25rem; width: 100%; background-color: rgba(168, 85, 247, 0.1); margin-top: auto;">
+                <div style="height: 100%; width: 0; transition: width 0.7s; background-color: rgb(168, 85, 247);"></div>
+              </div>
+            </div>
+            </a>
+
+            <!-- Division 5: Port -->
+            <a href="./divisions/port.html" style="text-decoration: none; color: inherit;">
+            <div class="division-card card" style="background-color: rgba(26, 39, 56, 0.4); border-color: rgba(255, 255, 255, 0.05); transition: all 0.3s; cursor: pointer;">
+              <div style="position: absolute; top: 1rem; right: 1rem; opacity: 0.1;">
+                <svg width="96" height="96" fill="none" stroke="rgb(59, 130, 246)" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+                </svg>
+              </div>
+              
+              <div class="card-header">
+                <div class="flex justify-between items-start mb-2">
+                  <span class="badge" style="border-color: rgba(59, 130, 246, 0.5); color: rgb(59, 130, 246); background-color: transparent;">
+                    DIV-05
+                  </span>
+                  <svg width="20" height="20" fill="none" stroke="rgb(59, 130, 246)" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 5c7.18 0 13 5.82 13 13M6 11a7 7 0 017 7m-6 0a1 1 0 11-2 0 1 1 0 012 0z"/>
+                  </svg>
+                </div>
+                <h3 style="font-size: 1.25rem; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; margin-bottom: 0.5rem;">
+                  港湾部門
+                </h3>
+                <p style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.4); font-weight: 600; letter-spacing: 0.05em;">
+                  Port Division
+                </p>
+              </div>
+              
+              <div class="card-content">
+                <p style="font-size: 0.875rem; color: var(--muted-foreground); line-height: 1.75; border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 1rem;">
+                  境界の入り口となる土地や施設を24時間監視し、未認可の不根（ふね）や海蝕実体の侵入を阻止する。
+                </p>
+              </div>
+              
+              <div style="height: 0.25rem; width: 100%; background-color: rgba(59, 130, 246, 0.1); margin-top: auto;">
+                <div style="height: 100%; width: 0; transition: width 0.7s; background-color: rgb(59, 130, 246);"></div>
+              </div>
+            </div>
+            </a>
+
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="./js/sidebar.js"></script>
+  <script src="./js/main.js"></script>
+  <script src="./js/modal.js"></script>
+  <script src="./js/progress.js"></script>
+  <script src="./js/level-messages.js"></script>
+  <script src="./js/daily-login.js"></script>
+  <script>
+    // Check if user has access to this page
+    if (!ProgressSystem.checkPageAccess('divisions.html')) {
+      ModalSystem.warning(
+        'このページにアクセスするには LEVEL 1 が必要です。<br><br>ダッシュボードで経験値を確認し、レベルアップしてください。',
+        'ACCESS DENIED'
+      ).then(() => {
+        window.location.href = './dashboard.html';
+      });
+    } else {
+      // Track page view and award XP
+      ProgressSystem.trackActivity('division_view');
+    }
+
+    // Hover effect for division cards
+    document.querySelectorAll('.division-card').forEach(card => {
+      card.addEventListener('mouseenter', function() {
+        this.querySelector('div[style*="width: 0"]').style.width = '100%';
+      });
+      card.addEventListener('mouseleave', function() {
+        this.querySelector('div[style*="width: 100%"]').style.width = '0';
+      });
+    });
+  </script>
+</body>
+</html>

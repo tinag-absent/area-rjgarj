@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>アーカイブ：海蝕現象 - 海蝕機関</title>
+  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .accordion-item {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background-color: rgba(26, 39, 56, 0.2);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    .accordion-trigger {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      cursor: pointer;
+      border: none;
+      background: none;
+      color: var(--foreground);
+      font-family: 'JetBrains Mono', monospace;
+      text-align: left;
+      transition: color 0.3s;
+    }
+    .accordion-trigger:hover {
+      color: var(--primary);
+    }
+    .accordion-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+      color: var(--muted-foreground);
+      line-height: 1.75;
+      padding-top: 0;
+    }
+    .accordion-content.active {
+      max-height: 500px;
+      padding-top: 0.5rem;
+    }
+    .accordion-icon {
+      transition: transform 0.3s;
+    }
+    .accordion-icon.active {
+      transform: rotate(180deg);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <!-- Sidebar content will be loaded by sidebar.js -->
+    </aside>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle">
+      <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content scanline">
+      <div class="container">
+        <div style="max-width: 56rem; margin: 0 auto;" class="space-y-12 animate-fadeIn">
+          
+          <!-- Header -->
+          <div class="text-center space-y-6" style="padding: 3rem 0; border-bottom: 1px solid rgba(255, 255, 255, 0.1);">
+            <h1 class="glitch-text" style="font-size: 3rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: -0.025em; color: white;">
+              アーカイブ：海蝕現象
+            </h1>
+            <p class="font-mono text-primary" style="letter-spacing: 0.1em; font-size: 0.75rem; text-transform: uppercase; opacity: 0.6;">
+              閲覧権限が必要です
+            </p>
+          </div>
+
+          <!-- Content -->
+          <div class="space-y-12">
+            
+            <!-- Section 1: Basic Concepts -->
+            <section class="space-y-6">
+              <h2 class="text-primary" style="font-size: 1.5rem; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; border-bottom: 1px solid rgba(0, 255, 255, 0.2); padding-bottom: 0.5rem;">
+                基本概念
+              </h2>
+              
+              <div class="space-y-4">
+                <!-- Accordion 1 -->
+                <div class="accordion-item">
+                  <button class="accordion-trigger" data-accordion="001">
+                    <span>[001] 海蝕現象</span>
+                    <svg class="accordion-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                  </button>
+                  <div class="accordion-content" data-content="001">
+                    <p class="mb-4">
+                      「海蝕現象」とは、我々の存在する次元空間に対し、別次元――通称「<strong style="color: white;">階宙次元</strong>」からの浸食が発生し、物理法則や因果律が変質・消失する現象の総称。
+                    </p>
+                    <p>
+                      多くの場合、浸食された領域は「海」に似た視覚的特徴や性質を示すことから、機関内ではこの名称が定着しました。
+                    </p>
+                  </div>
+                </div>
+
+                <!-- Accordion 2 -->
+                <div class="accordion-item">
+                  <button class="accordion-trigger" data-accordion="002">
+                    <span>[002] 次元構造</span>
+                    <svg class="accordion-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                  </button>
+                  <div class="accordion-content" data-content="002">
+                    <div style="margin-bottom: 1rem;">
+                      <strong style="color: white; display: block; margin-bottom: 0.25rem;">階宙次元 (Kaichu Dimension)</strong>
+                      我々の次元世界を包括して存在する異常次元。僅かな可能性を「拡大」して新たな世界を生み出すため、理論上は全ての可能性の世界が存在すると考えられています。
+                    </div>
+                    <div>
+                      <strong style="color: white; display: block; margin-bottom: 0.25rem;">階底次元 (Kaitei Dimension)</strong>
+                      階宙次元内での現在存在している次元のことを相対的に表現したもの。
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Accordion 3 -->
+                <div class="accordion-item">
+                  <button class="accordion-trigger" data-accordion="003">
+                    <span>[003] 残滓</span>
+                    <svg class="accordion-icon" width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                  </button>
+                  <div class="accordion-content" data-content="003">
+                    <p>
+                      海蝕現象の収束後に現場に残される、異質な物質やエネルギーの結晶。
+                      工作部門が「モジュール」の材料として使用する極めて重要な研究対象です。
+                      <span class="redacted" style="background-color: var(--destructive); color: var(--destructive);">極めて不安定</span>ですが、我々の唯一の対抗手段となります。
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <!-- Section 2: Entity Classification -->
+            <section class="space-y-6">
+              <h2 class="text-primary" style="font-size: 1.5rem; font-family: 'Space Grotesk', sans-serif; text-transform: uppercase; border-bottom: 1px solid rgba(0, 255, 255, 0.2); padding-bottom: 0.5rem;">
+                実体分類
+              </h2>
+              
+              <div class="grid grid-cols-2" style="gap: 1rem;">
+                <div style="padding: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1); background: linear-gradient(to bottom right, rgba(26, 39, 56, 0.5), transparent); transition: border-color 0.3s;">
+                  <h3 class="font-mono" style="font-weight: 600; color: white; margin-bottom: 0.5rem;">海蝕実体</h3>
+                  <p style="font-size: 0.875rem; color: var(--muted-foreground);">
+                    海蝕現象が次元世界で実体化したもの。意思や概念など、通常は実体を持たないものも実体化します。
+                  </p>
+                </div>
+                <div style="padding: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1); background: linear-gradient(to bottom right, rgba(26, 39, 56, 0.5), transparent); transition: border-color 0.3s;">
+                  <h3 class="font-mono" style="font-weight: 600; color: white; margin-bottom: 0.5rem;">不根 (Fune)</h3>
+                  <p style="font-size: 0.875rem; color: var(--muted-foreground);">
+                    特定の次元世界に定在せず、次元世界から次元世界へと渡り歩いているものたちの総称。多種多様な種族が入り混じっています。
+                  </p>
+                </div>
+              </div>
+            </section>
+
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="./js/sidebar.js"></script>
+  <script src="./js/main.js"></script>
+  <script src="./js/modal.js"></script>
+  <script src="./js/progress.js"></script>
+  <script src="./js/level-messages.js"></script>
+  <script src="./js/daily-login.js"></script>
+  <script>
+    // Check if user has access to this page
+    if (!ProgressSystem.checkPageAccess('phenomenon.html')) {
+      ModalSystem.warning(
+        'このページにアクセスするには LEVEL 3 が必要です。<br><br>より多くの経験値を獲得してレベルアップしてください。',
+        'ACCESS DENIED'
+      ).then(() => {
+        window.location.href = './dashboard.html';
+      });
+    } else {
+      // Track page view and award XP
+      ProgressSystem.trackActivity('phenomenon_view');
+    }
+
+    // Accordion functionality
+    document.querySelectorAll('.accordion-trigger').forEach(trigger => {
+      trigger.addEventListener('click', function() {
+        const contentId = this.getAttribute('data-accordion');
+        const content = document.querySelector(`[data-content="${contentId}"]`);
+        const icon = this.querySelector('.accordion-icon');
+        
+        // Toggle active state
+        content.classList.toggle('active');
+        icon.classList.toggle('active');
+      });
+    });
+  </script>
+</body>
+</html>

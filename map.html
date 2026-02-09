@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>海蝕現象マップ - 海蝕機関</title>
+  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .map-container {
+      position: relative;
+      width: 100%;
+      max-width: 1400px;
+      margin: 0 auto;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1rem;
+    }
+
+    .map-wrapper {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      border: 2px solid var(--primary);
+      background: rgba(15, 23, 42, 0.5);
+    }
+
+    .map-svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .incident-marker {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      cursor: pointer;
+      animation: markerPulse 2s infinite;
+      z-index: 10;
+    }
+
+    .incident-marker::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      opacity: 0.3;
+      animation: ripple 2s infinite;
+    }
+
+    .incident-marker.critical::before {
+      background: var(--destructive);
+    }
+
+    .incident-marker.warning::before {
+      background: rgb(245, 158, 11);
+    }
+
+    .incident-marker.safe::before {
+      background: var(--primary);
+    }
+
+    .marker-icon {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+      position: relative;
+      z-index: 2;
+    }
+
+    .incident-marker.critical .marker-icon {
+      background: var(--destructive);
+      border: 2px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .incident-marker.warning .marker-icon {
+      background: rgb(245, 158, 11);
+      border: 2px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .incident-marker.safe .marker-icon {
+      background: var(--primary);
+      border: 2px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .incident-popup {
+      position: absolute;
+      background: linear-gradient(135deg, rgba(26, 39, 56, 0.98), rgba(15, 23, 42, 0.98));
+      border: 2px solid var(--primary);
+      padding: 1rem;
+      min-width: 280px;
+      max-width: 350px;
+      z-index: 100;
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+      backdrop-filter: blur(10px);
+      display: none;
+      pointer-events: none;
+    }
+
+    .incident-popup.active {
+      display: block;
+    }
+
+    .popup-header {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .popup-content {
+      font-size: 0.875rem;
+      color: var(--muted-foreground);
+      line-height: 1.6;
+    }
+
+    .popup-stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.25rem 0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+    }
+
+    .legend {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      padding: 1rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 1rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid white;
+    }
+
+    .legend-dot.critical {
+      background: var(--destructive);
+    }
+
+    .legend-dot.warning {
+      background: rgb(245, 158, 11);
+    }
+
+    .legend-dot.safe {
+      background: var(--primary);
+    }
+
+    @keyframes markerPulse {
+      0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.1);
+      }
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 0.3;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+      }
+    }
+
+    .incident-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .incident-card {
+      background: rgba(26, 39, 56, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .incident-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .incident-card.critical {
+      border-left: 4px solid var(--destructive);
+    }
+
+    .incident-card.warning {
+      border-left: 4px solid rgb(245, 158, 11);
+    }
+
+    .incident-card.safe {
+      border-left: 4px solid var(--primary);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--muted-foreground);
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <!-- Sidebar content will be loaded by sidebar.js -->
+    </aside>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle">
+      <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content scanline">
+      <div class="container" style="max-width: 100%;">
+        <div class="space-y-12 animate-fadeIn">
+          
+          <!-- Header -->
+          <div class="space-y-4" style="border-left: 4px solid var(--destructive); padding-left: 1rem;">
+            <h1 style="font-size: 2.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: white; text-transform: uppercase;">
+              海蝕現象マップ
+            </h1>
+            <p class="font-mono text-muted" style="font-size: 0.875rem;">
+              リアルタイム発生状況 - 最終更新: <span id="lastUpdate">---</span>
+            </p>
+          </div>
+
+          <!-- Statistics -->
+          <div class="stats-grid">
+            <div class="stat-box">
+              <div class="stat-number" id="totalIncidents">0</div>
+              <div class="stat-label">総発生件数</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number" style="color: var(--destructive);" id="criticalCount">0</div>
+              <div class="stat-label">重大事案</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number" style="color: rgb(245, 158, 11);" id="warningCount">0</div>
+              <div class="stat-label">警戒事案</div>
+            </div>
+          </div>
+
+          <!-- Legend -->
+          <div class="legend">
+            <div class="legend-item">
+              <div class="legend-dot critical"></div>
+              <span style="color: var(--destructive);">重大（即時対応必要）</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot warning"></div>
+              <span style="color: rgb(245, 158, 11);">警戒（監視強化中）</span>
+            </div>
+            <div class="legend-item">
+              <div class="legend-dot safe"></div>
+              <span style="color: var(--primary);">観察（収束済み）</span>
+            </div>
+          </div>
+
+          <!-- Map -->
+          <div class="map-container">
+            <div class="map-wrapper" id="mapWrapper">
+              <img src="./images/map.svg" alt="Map" class="map-svg" id="mapImage">
+              <!-- Markers will be added by JavaScript -->
+            </div>
+          </div>
+
+          <!-- Popup -->
+          <div class="incident-popup" id="incidentPopup">
+            <div class="popup-header" id="popupTitle">---</div>
+            <div class="popup-content" id="popupContent">---</div>
+          </div>
+
+          <!-- Incident List -->
+          <div>
+            <h2 style="font-size: 1.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: white; margin-bottom: 1rem;">
+              発生事案一覧
+            </h2>
+            <div class="incident-list" id="incidentList">
+              <!-- Will be populated by JavaScript -->
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="./js/sidebar.js"></script>
+  <script src="./js/main.js"></script>
+  <script src="./js/modal.js"></script>
+  <script src="./js/progress.js"></script>
+  <script src="./js/level-messages.js"></script>
+  <script src="./js/daily-login.js"></script>
+  <script src="./js/map-data.js"></script>
+  <script src="./js/map.js"></script>
+</body>
+</html>

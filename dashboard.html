@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>機関員ダッシュボード - 海蝕機関</title>
+  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <!-- Sidebar content will be loaded by sidebar.js -->
+    </aside>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle">
+      <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content scanline">
+      <div class="container">
+        <div class="space-y-12 animate-fadeIn">
+          
+          <!-- Welcome Section -->
+          <section class="space-y-6">
+            <div class="flex items-center gap-2 font-mono" style="font-size: 0.875rem; letter-spacing: 0.1em;">
+              <span id="statusDot" style="width: 0.5rem; height: 0.5rem; background-color: rgb(16, 185, 129); border-radius: 50%; animation: pulse 2s infinite;"></span>
+              <span id="statusText" style="color: rgb(16, 185, 129);">認証済み</span>
+            </div>
+            
+            <div class="space-y-4">
+              <h1 id="dashboardGreeting" style="font-size: 2.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: white; text-transform: uppercase;">
+                機関員ダッシュボード
+              </h1>
+              <p id="dashboardDescription" style="font-size: 1.25rem; color: var(--muted-foreground); font-weight: 300; line-height: 1.75;">
+                ようこそ、<span id="welcomeUserName" class="text-primary">---</span>さん
+              </p>
+            </div>
+          </section>
+
+          <div class="separator"></div>
+
+          <!-- User Info Grid -->
+          <div class="grid grid-cols-3" style="gap: 1.5rem;">
+            
+            <!-- Profile Card -->
+            <div class="card" style="background-color: rgba(26, 39, 56, 0.5); backdrop-filter: blur(10px); border-color: rgba(0, 255, 255, 0.2); grid-column: span 2;">
+              <div class="card-header" style="border-bottom-color: rgba(0, 255, 255, 0.1);">
+                <div class="card-title text-primary">
+                  <span>機関員プロフィール</span>
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="card-content pt-6">
+                <div class="grid grid-cols-2" style="gap: 1.5rem;">
+                  <div>
+                    <div class="font-mono text-muted" style="font-size: 0.75rem; margin-bottom: 0.5rem;">機関員ID</div>
+                    <div style="font-size: 1.25rem; font-family: 'JetBrains Mono', monospace; color: white;" id="userId">---</div>
+                  </div>
+                  <div>
+                    <div class="font-mono text-muted" style="font-size: 0.75rem; margin-bottom: 0.5rem;">氏名</div>
+                    <div style="font-size: 1.25rem; color: white;" id="userName">---</div>
+                  </div>
+                  <div>
+                    <div class="font-mono text-muted" style="font-size: 0.75rem; margin-bottom: 0.5rem;">所属部門</div>
+                    <div style="font-size: 1.125rem; color: white;" id="userDivision">---</div>
+                  </div>
+                  <div>
+                    <div class="font-mono text-muted" style="font-size: 0.75rem; margin-bottom: 0.5rem;">権限レベル</div>
+                    <div style="font-size: 1.125rem; color: var(--destructive); font-weight: 600;" id="userLevel">LEVEL 0</div>
+                  </div>
+                  <div style="grid-column: span 2;">
+                    <div class="font-mono text-muted" style="font-size: 0.75rem; margin-bottom: 0.5rem;">登録日時</div>
+                    <div style="font-size: 0.875rem; font-family: 'JetBrains Mono', monospace; color: var(--muted-foreground);" id="userRegistered">---</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Activity Card -->
+            <div class="card" style="background-color: rgba(0, 0, 0, 0.4); border-color: rgba(255, 255, 255, 0.1);">
+              <div class="card-header" style="border-bottom-color: rgba(255, 255, 255, 0.05);">
+                <div class="card-title text-muted" style="font-size: 0.875rem;">
+                  <span>経験値 & レベル</span>
+                </div>
+              </div>
+              <div class="card-content pt-6">
+                <div class="space-y-4">
+                  <div>
+                    <div style="font-size: 2rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--primary);" id="userXP">0 XP</div>
+                    <div class="font-mono text-muted" style="font-size: 0.75rem;">現在の経験値</div>
+                  </div>
+                  <div>
+                    <div class="font-mono text-muted" style="font-size: 0.75rem; margin-bottom: 0.5rem;">
+                      次のレベルまで: <span id="xpNeeded" style="color: var(--primary);">---</span>
+                    </div>
+                    <div style="height: 0.5rem; width: 100%; background-color: rgba(255, 255, 255, 0.1); overflow: hidden;">
+                      <div id="xpProgress" style="height: 100%; background: linear-gradient(90deg, var(--primary), var(--accent)); width: 0%; transition: width 0.5s;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Daily Login Card -->
+            <div class="card" style="background-color: rgba(0, 0, 0, 0.4); border-color: rgba(0, 255, 255, 0.2); grid-column: span 3;">
+              <div class="card-header" style="border-bottom-color: rgba(0, 255, 255, 0.1);">
+                <div class="card-title text-primary" style="font-size: 0.875rem;">
+                  <span>デイリーログイン</span>
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="card-content pt-6">
+                <div id="dailyLoginStatus" class="grid grid-cols-3" style="gap: 1.5rem;">
+                  <!-- Will be populated by JavaScript -->
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Unlockable Content -->
+          <div class="card" style="background-color: rgba(0, 0, 0, 0.3); border-color: rgba(255, 255, 255, 0.05);">
+            <div class="card-header">
+              <h2 class="font-mono text-primary" style="font-size: 1.125rem; text-transform: uppercase;">
+                アクセス可能なコンテンツ
+              </h2>
+            </div>
+            <div class="card-content pt-6">
+              <div id="unlockedContent" class="grid grid-cols-2" style="gap: 1rem;">
+                <!-- Will be populated by JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Locked Content -->
+          <div class="card" style="background-color: rgba(127, 29, 29, 0.05); border-color: rgba(239, 68, 68, 0.2);">
+            <div class="card-header">
+              <h2 class="font-mono text-destructive" style="font-size: 1.125rem; text-transform: uppercase;">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: inline; margin-right: 0.5rem;">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+                ロック中のコンテンツ
+              </h2>
+            </div>
+            <div class="card-content pt-6">
+              <div id="lockedContent" class="grid grid-cols-2" style="gap: 1rem;">
+                <!-- Will be populated by JavaScript -->
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="card" style="background-color: rgba(0, 0, 0, 0.3); border-color: rgba(255, 255, 255, 0.05);">
+            <div class="card-header">
+              <h2 class="font-mono text-primary" style="font-size: 1.125rem; text-transform: uppercase;">
+                経験値を獲得する方法
+              </h2>
+            </div>
+            <div class="card-content pt-6">
+              <div class="space-y-3">
+                <div class="flex justify-between items-center" style="padding: 0.75rem; background-color: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05);">
+                  <span style="color: var(--foreground);">プロフィール閲覧</span>
+                  <span class="font-mono" style="color: var(--primary); font-weight: 600;">+10 XP</span>
+                </div>
+                <div class="flex justify-between items-center" style="padding: 0.75rem; background-color: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05);">
+                  <span style="color: var(--foreground);">部門情報閲覧</span>
+                  <span class="font-mono" style="color: var(--primary); font-weight: 600;">+20 XP</span>
+                </div>
+                <div class="flex justify-between items-center" style="padding: 0.75rem; background-color: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05);">
+                  <span style="color: var(--foreground);">チャットメッセージ送信</span>
+                  <span class="font-mono" style="color: var(--primary); font-weight: 600;">+5 XP</span>
+                </div>
+                <div class="flex justify-between items-center" style="padding: 0.75rem; background-color: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05);">
+                  <span style="color: var(--foreground);">海蝕現象アーカイブ閲覧</span>
+                  <span class="font-mono" style="color: var(--primary); font-weight: 600;">+30 XP</span>
+                </div>
+                <div class="flex justify-between items-center" style="padding: 0.75rem; background-color: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05);">
+                  <span style="color: var(--foreground);">デイリーログイン</span>
+                  <span class="font-mono" style="color: var(--primary); font-weight: 600;">+25 XP</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity (old) -->
+          <div class="card" style="background-color: rgba(0, 0, 0, 0.3); border-color: rgba(255, 255, 255, 0.05);">
+            <div class="card-header">
+              <h2 class="font-mono text-primary" style="font-size: 1.125rem; text-transform: uppercase;">
+                最近のアクティビティ
+              </h2>
+            </div>
+            <div class="card-content pt-6">
+              <div class="text-center" style="padding: 3rem 0; color: var(--muted-foreground);">
+                <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 1rem; opacity: 0.3;">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/>
+                </svg>
+                <p class="font-mono" style="font-size: 0.875rem;">アクティビティはまだありません</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="./js/sidebar.js"></script>
+  <script src="./js/main.js"></script>
+  <script src="./js/modal.js"></script>
+  <script src="./js/progress.js"></script>
+  <script src="./js/level-messages.js"></script>
+  <script src="./js/daily-login.js"></script>
+  <script>
+    const CURRENT_USER_KEY = 'kaishoku_current_user';
+
+    function getCurrentUser() {
+      const user = localStorage.getItem(CURRENT_USER_KEY);
+      return user ? JSON.parse(user) : null;
+    }
+
+    function clearCurrentUser() {
+      localStorage.removeItem(CURRENT_USER_KEY);
+    }
+
+    const divisionNames = {
+      'convergence': '収束部門',
+      'support': '支援部門',
+      'engineering': '工作部門',
+      'foreign': '外事部門',
+      'port': '港湾部門'
+    };
+
+    const pageNames = {
+      'index.html': 'ステータス・ダッシュボード',
+      'divisions.html': '各部門情報',
+      'division-convergence.html': '収束部門詳細',
+      'division-support.html': '支援部門詳細',
+      'division-engineering.html': '工作部門詳細',
+      'division-foreign.html': '外事部門詳細',
+      'division-port.html': '港湾部門詳細',
+      'phenomenon.html': 'アーカイブ：海蝕現象',
+      'chat.html': '機関員チャット',
+      'dashboard.html': 'マイページ',
+      'modules.html': 'モジュールカタログ',
+      'entities.html': '海蝕実体カタログ',
+      'missions.html': '収束任務',
+      'classified.html': '機密情報'
+    };
+
+    // Check authentication
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
+      window.location.href = './login.html';
+    } else {
+      // Initialize XP if not exists
+      if (typeof currentUser.xp === 'undefined') {
+        currentUser.xp = 0;
+        localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(currentUser));
+      }
+
+      // Track profile view
+      ProgressSystem.trackActivity('profile_view');
+
+      // Update level-based messages
+      updateLevelBasedMessages(currentUser);
+
+      // Populate user data
+      document.getElementById('sidebarUserName').textContent = currentUser.name;
+      document.getElementById('welcomeUserName').textContent = currentUser.name;
+      document.getElementById('userId').textContent = currentUser.id;
+      document.getElementById('userName').textContent = currentUser.name;
+      document.getElementById('userDivision').textContent = divisionNames[currentUser.division] || currentUser.division;
+      document.getElementById('userLevel').textContent = `LEVEL ${currentUser.level}`;
+      
+      // Display XP and progress
+      document.getElementById('userXP').textContent = `${currentUser.xp || 0} XP`;
+      
+      const levelInfo = ProgressSystem.getNextLevelInfo(currentUser);
+      if (levelInfo.isMaxLevel) {
+        document.getElementById('xpNeeded').textContent = 'MAX LEVEL';
+        document.getElementById('xpProgress').style.width = '100%';
+      } else {
+        document.getElementById('xpNeeded').textContent = `${levelInfo.xpNeeded} XP`;
+        document.getElementById('xpProgress').style.width = `${levelInfo.progress}%`;
+      }
+      
+      // Format registration date
+      const regDate = new Date(currentUser.registeredAt);
+      document.getElementById('userRegistered').textContent = regDate.toLocaleString('ja-JP', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+
+      // Display unlocked and locked content
+      displayUnlockedContent(currentUser.level);
+      displayLockedContent(currentUser.level);
+    }
+
+    function displayUnlockedContent(level) {
+      const container = document.getElementById('unlockedContent');
+      const unlockedPages = ProgressSystem.getUnlockedPages(level);
+      
+      // Filter out login and dashboard
+      const displayPages = unlockedPages.filter(p => p !== 'login.html' && p !== 'dashboard.html');
+      
+      if (displayPages.length === 0) {
+        container.innerHTML = '<p class="text-muted" style="grid-column: span 2; text-align: center;">アクセス可能なコンテンツはありません</p>';
+        return;
+      }
+
+      container.innerHTML = displayPages.map(page => {
+        const name = pageNames[page] || page;
+        return `
+          <a href="./${page}" style="text-decoration: none;">
+            <div style="padding: 1rem; background-color: rgba(0, 255, 255, 0.05); border: 1px solid rgba(0, 255, 255, 0.2); transition: all 0.3s; cursor: pointer;" 
+                 onmouseover="this.style.backgroundColor='rgba(0, 255, 255, 0.1)'" 
+                 onmouseout="this.style.backgroundColor='rgba(0, 255, 255, 0.05)'">
+              <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                <svg width="16" height="16" fill="none" stroke="var(--primary)" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span style="color: var(--primary); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; text-transform: uppercase;">アンロック済み</span>
+              </div>
+              <div style="color: white; font-weight: 600; font-size: 0.875rem;">${name}</div>
+            </div>
+          </a>
+        `;
+      }).join('');
+    }
+
+    function displayLockedContent(level) {
+      const container = document.getElementById('lockedContent');
+      const lockedPages = ProgressSystem.getLockedPages(level);
+      
+      if (lockedPages.length === 0) {
+        container.innerHTML = '<p class="text-muted" style="grid-column: span 2; text-align: center;">全てのコンテンツがアンロックされました！</p>';
+        return;
+      }
+
+      // Find required level for each locked page
+      const pageRequirements = {};
+      Object.entries(ProgressSystem.LEVEL_UNLOCKS).forEach(([lvl, pages]) => {
+        pages.forEach(page => {
+          if (lockedPages.includes(page)) {
+            pageRequirements[page] = parseInt(lvl);
+          }
+        });
+      });
+
+      container.innerHTML = lockedPages.map(page => {
+        const name = pageNames[page] || page;
+        const requiredLevel = pageRequirements[page] || 0;
+        return `
+          <div style="padding: 1rem; background-color: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.1); opacity: 0.6;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+              <svg width="16" height="16" fill="none" stroke="var(--destructive)" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+              </svg>
+              <span style="color: var(--destructive); font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; text-transform: uppercase;">LEVEL ${requiredLevel} 必要</span>
+            </div>
+            <div style="color: var(--muted-foreground); font-weight: 600; font-size: 0.875rem;">${name}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Logout functionality
+    document.getElementById('logoutButton').addEventListener('click', function() {
+      ModalSystem.confirm(
+        'ログアウトしますか？',
+        'LOGOUT CONFIRMATION'
+      ).then(confirmed => {
+        if (confirmed) {
+          clearCurrentUser();
+          window.location.href = './login.html';
+        }
+      });
+    });
+
+    // Listen for progress updates
+    window.addEventListener('userProgressUpdated', function(e) {
+      const result = e.detail;
+      const updatedUser = result.user;
+      
+      // Update displays
+      document.getElementById('userLevel').textContent = `LEVEL ${updatedUser.level}`;
+      document.getElementById('sidebarUserLevel').textContent = `LEVEL ${updatedUser.level}`;
+      document.getElementById('userXP').textContent = `${updatedUser.xp || 0} XP`;
+      
+      const levelInfo = ProgressSystem.getNextLevelInfo(updatedUser);
+      if (levelInfo.isMaxLevel) {
+        document.getElementById('xpNeeded').textContent = 'MAX LEVEL';
+        document.getElementById('xpProgress').style.width = '100%';
+      } else {
+        document.getElementById('xpNeeded').textContent = `${levelInfo.xpNeeded} XP`;
+        document.getElementById('xpProgress').style.width = `${levelInfo.progress}%`;
+      }
+
+      // Refresh content lists if leveled up
+      if (result.leveledUp) {
+        displayUnlockedContent(updatedUser.level);
+        displayLockedContent(updatedUser.level);
+      }
+    });
+
+    // Display daily login status
+    function displayDailyLoginStatus() {
+      const status = ProgressSystem.getDailyLoginStatus();
+      const container = document.getElementById('dailyLoginStatus');
+      
+      if (!status) {
+        container.innerHTML = '<div style="color: var(--muted-foreground);">ログインが必要です</div>';
+        return;
+      }
+
+      const streakDay = status.streak > 0 ? ((status.streak - 1) % 7) + 1 : 1;
+      const nextReward = ProgressSystem.DAILY_LOGIN_REWARDS[streakDay] || 25;
+      
+      container.innerHTML = `
+        <div>
+          <div class="font-mono text-muted" style="font-size: 0.75rem; margin-bottom: 0.5rem;">連続ログイン</div>
+          <div style="font-size: 2rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: var(--primary);">
+            ${status.streak} 日
+          </div>
+        </div>
+        <div>
+          <div class="font-mono text-muted" style="font-size: 0.75rem; margin-bottom: 0.5rem;">累計ログイン</div>
+          <div style="font-size: 2rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: white;">
+            ${status.totalLogins} 日
+          </div>
+        </div>
+        <div>
+          <div class="font-mono text-muted" style="font-size: 0.75rem; margin-bottom: 0.5rem;">
+            ${status.canClaim ? '本日の報酬' : '次回報酬'}
+          </div>
+          <div style="font-size: 1.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: ${status.canClaim ? 'rgb(16, 185, 129)' : 'var(--primary)'};">
+            +${nextReward} XP
+          </div>
+          ${status.canClaim ? `
+            <button onclick="showDailyLoginModal()" style="
+              margin-top: 1rem;
+              padding: 0.75rem 1.5rem;
+              background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+              border: 2px solid rgb(16, 185, 129);
+              color: rgb(16, 185, 129);
+              font-family: 'Space Grotesk', sans-serif;
+              font-size: 0.875rem;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.1em;
+              cursor: pointer;
+              width: 100%;
+              transition: all 0.3s;
+            " onmouseover="this.style.backgroundColor='rgba(16, 185, 129, 0.3)'" onmouseout="this.style.backgroundColor='transparent'">
+              受け取る
+            </button>
+          ` : `
+            <div style="margin-top: 1rem; font-size: 0.875rem; color: var(--muted-foreground); font-family: 'JetBrains Mono', monospace;">
+              ${formatTimeUntilNextDay(status.nextRewardIn)}
+            </div>
+          `}
+        </div>
+      `;
+    }
+
+    function formatTimeUntilNextDay(milliseconds) {
+      const hours = Math.floor(milliseconds / (1000 * 60 * 60));
+      const minutes = Math.floor((milliseconds % (1000 * 60 * 60)) / (1000 * 60));
+      
+      if (hours > 0) {
+        return `${hours}時間${minutes}分後`;
+      }
+      return `${minutes}分後`;
+    }
+
+    function showDailyLoginModal() {
+      const status = ProgressSystem.getDailyLoginStatus();
+      const ui = new DailyLoginUI();
+      ui.show(status);
+    }
+
+    // Listen for daily login claimed event
+    window.addEventListener('dailyLoginClaimed', function(e) {
+      displayDailyLoginStatus();
+    });
+
+    // Display daily login status on load
+    displayDailyLoginStatus();
+
+    /**
+     * Update level-based messages
+     */
+    function updateLevelBasedMessages(user) {
+      const level = user.level || 0;
+      
+      // Get level-specific messages
+      const dashboardMsg = LevelMessages.getDashboardMessage(level);
+      const rankInfo = LevelMessages.getRankTitle(level);
+      
+      // Update greeting
+      const greetingElement = document.getElementById('dashboardGreeting');
+      if (greetingElement) {
+        greetingElement.textContent = dashboardMsg.greeting;
+      }
+      
+      // Update description
+      const descriptionElement = document.getElementById('dashboardDescription');
+      if (descriptionElement) {
+        descriptionElement.innerHTML = dashboardMsg.description;
+      }
+      
+      // Update status text and color
+      const statusText = document.getElementById('statusText');
+      const statusDot = document.getElementById('statusDot');
+      if (statusText && rankInfo) {
+        statusText.textContent = rankInfo.status;
+        statusText.style.color = rankInfo.color;
+      }
+      if (statusDot && rankInfo) {
+        statusDot.style.backgroundColor = rankInfo.color;
+      }
+      
+      // Update user level display with rank title
+      const userLevelElement = document.getElementById('userLevel');
+      if (userLevelElement) {
+        userLevelElement.textContent = rankInfo.title;
+        userLevelElement.style.color = rankInfo.color;
+      }
+    }
+  </script>
+</body>
+</html>

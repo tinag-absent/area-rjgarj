@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>収束案件データベース - 海蝕機関</title>
+  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .search-bar {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .search-input {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--foreground);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(0, 255, 255, 0.1);
+    }
+
+    .search-btn {
+      padding: 0.75rem 2rem;
+      background: var(--primary);
+      color: var(--primary-foreground);
+      border: none;
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .search-btn:hover {
+      opacity: 0.8;
+    }
+
+    .filter-section {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+      padding: 1.5rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .filter-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--primary);
+      text-transform: uppercase;
+    }
+
+    .filter-select {
+      padding: 0.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--foreground);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .mission-card {
+      background: linear-gradient(135deg, rgba(26, 39, 56, 0.4), rgba(15, 23, 42, 0.4));
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .mission-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.2);
+      transform: translateX(5px);
+    }
+
+    .mission-card.active {
+      border-left: 4px solid var(--destructive);
+    }
+
+    .mission-card.completed {
+      border-left: 4px solid rgb(16, 185, 129);
+    }
+
+    .mission-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      margin-bottom: 1rem;
+    }
+
+    .mission-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 0.25rem;
+    }
+
+    .mission-code {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      color: var(--muted-foreground);
+    }
+
+    .mission-badges {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .status-badge {
+      padding: 0.25rem 0.75rem;
+      font-size: 0.7rem;
+      font-family: 'JetBrains Mono', monospace;
+      text-transform: uppercase;
+      border: 1px solid;
+    }
+
+    .status-active {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--destructive);
+      color: var(--destructive);
+    }
+
+    .status-completed {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgb(16, 185, 129);
+      color: rgb(16, 185, 129);
+    }
+
+    .severity-critical {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--destructive);
+      color: var(--destructive);
+    }
+
+    .severity-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgb(245, 158, 11);
+      color: rgb(245, 158, 11);
+    }
+
+    .severity-safe {
+      background: rgba(0, 255, 255, 0.1);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .mission-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .info-item {
+      font-size: 0.875rem;
+    }
+
+    .info-label {
+      color: var(--muted-foreground);
+      margin-bottom: 0.25rem;
+      font-size: 0.75rem;
+    }
+
+    .info-value {
+      color: white;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .stats-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat-card {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1rem;
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted-foreground);
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar (same as other pages) -->
+    <aside class="sidebar">
+      <!-- Sidebar content will be loaded by sidebar.js -->
+    </aside>
+
+    <button class="mobile-menu-toggle">
+      <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+    <div class="mobile-menu-overlay"></div>
+
+    <main class="main-content scanline">
+      <div class="container">
+        <div class="space-y-12 animate-fadeIn">
+          <div class="space-y-4" style="border-left: 4px solid var(--primary); padding-left: 1rem;">
+            <h1 style="font-size: 2.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: white; text-transform: uppercase;">
+              収束案件データベース
+            </h1>
+            <p class="font-mono text-muted" style="font-size: 0.875rem;">
+              MISSION ARCHIVE - 機密度: LEVEL 2
+            </p>
+          </div>
+
+          <!-- Statistics Summary -->
+          <div class="stats-summary" id="statsSummary">
+            <!-- Will be populated by JavaScript -->
+          </div>
+
+          <!-- Search Bar -->
+          <div class="search-bar">
+            <input type="text" id="searchInput" class="search-input" placeholder="案件名、コード、場所、実体で検索...">
+            <button class="search-btn" id="searchBtn">検索</button>
+          </div>
+
+          <!-- Filters -->
+          <div class="filter-section">
+            <div class="filter-group">
+              <label class="filter-label">ステータス</label>
+              <select id="statusFilter" class="filter-select">
+                <option value="all">全て</option>
+                <option value="active">対応中</option>
+                <option value="completed">収束済み</option>
+                <option value="failed">失敗</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">重要度</label>
+              <select id="severityFilter" class="filter-select">
+                <option value="all">全て</option>
+                <option value="critical">重大</option>
+                <option value="warning">警戒</option>
+                <option value="safe">観察</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label class="filter-label">並び順</label>
+              <select id="sortFilter" class="filter-select">
+                <option value="date-desc">新しい順</option>
+                <option value="date-asc">古い順</option>
+                <option value="severity">重要度順</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Results Count -->
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 1rem;">
+            <span id="resultCount">0</span> 件の案件が見つかりました
+          </div>
+
+          <!-- Mission List -->
+          <div id="missionList">
+            <!-- Will be populated by JavaScript -->
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="./js/sidebar.js"></script>
+  <script src="./js/main.js"></script>
+  <script src="./js/modal.js"></script>
+  <script src="./js/progress.js"></script>
+  <script src="./js/level-messages.js"></script>
+  <script src="./js/daily-login.js"></script>
+  <script src="./js/mission-data.js"></script>
+  <script src="./js/missions-search.js"></script>
+</body>
+</html>

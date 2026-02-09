@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>海蝕実体カタログ - 海蝕機関</title>
+  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="stylesheet" href="./css/style.css">
+  <link rel="stylesheet" href="./css/catalog.css">
+</head>
+<body>
+  <!-- Same sidebar as modules.html -->
+  <div class="app-layout">
+    <aside class="sidebar">
+      <!-- Sidebar content will be loaded by sidebar.js -->
+    </aside>
+    <button class="mobile-menu-toggle">
+      <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+    <div class="mobile-menu-overlay"></div>
+    <main class="main-content scanline">
+      <div class="container">
+        <div class="space-y-12 animate-fadeIn">
+          <div class="space-y-4" style="border-left: 4px solid var(--destructive); padding-left: 1rem;">
+            <h1 style="font-size: 2.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; color: white; text-transform: uppercase;">
+              海蝕実体カタログ
+            </h1>
+            <p class="font-mono text-muted" style="font-size: 0.875rem;">
+              階宙次元侵入生命体データベース - 機密度: LEVEL 3
+            </p>
+          </div>
+          <div class="filter-bar">
+            <button class="filter-btn active" data-filter="all">全て</button>
+            <button class="filter-btn" data-filter="safe">安全クラス</button>
+            <button class="filter-btn" data-filter="caution">要注意クラス</button>
+            <button class="filter-btn" data-filter="danger">危険クラス</button>
+            <button class="filter-btn" data-filter="classified">機密クラス</button>
+          </div>
+          <div class="catalog-grid" id="entityCatalog"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="./js/sidebar.js"></script>
+  <script src="./js/main.js"></script>
+  <script src="./js/modal.js"></script>
+  <script src="./js/progress.js"></script>
+  <script src="./js/catalog-data.js"></script>
+  <script src="./js/catalog-entities.js"></script>
+</body>
+</html>

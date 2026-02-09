@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>機関員アクセス - 海蝕機関</title>
+  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .tab-buttons {
+      display: flex;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 1.5rem;
+    }
+    .tab-button {
+      flex: 1;
+      padding: 0.75rem;
+      background: transparent;
+      border: none;
+      color: var(--muted-foreground);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.3s;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-button:hover {
+      color: var(--foreground);
+    }
+    .tab-button.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <!-- Sidebar content will be loaded by sidebar.js -->
+    </aside>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle">
+      <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu-overlay"></div>
+
+    <!-- Main Content -->
+    <main class="main-content scanline">
+      <div class="container">
+        <div style="display: flex; align-items: center; justify-content: center; min-height: 70vh;">
+          
+          <div class="card" style="width: 100%; max-width: 28rem; background-color: rgba(0, 0, 0, 0.6); border-color: rgba(255, 255, 255, 0.1); backdrop-filter: blur(10px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);">
+            
+            <!-- Header -->
+            <div class="card-header text-center space-y-4" style="border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 1.5rem;">
+              <div style="margin: 0 auto 1rem; width: 3rem; height: 3rem; background-color: rgba(255, 255, 255, 0.05); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.1);">
+                <svg width="24" height="24" fill="none" stroke="var(--primary)" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+              </div>
+              <h2 class="glitch-text" style="font-size: 1.5rem; font-family: 'Space Grotesk', sans-serif; font-weight: 700; letter-spacing: 0.1em; color: white;">
+                機関員認証
+              </h2>
+              <p class="font-mono" style="font-size: 0.75rem; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: 0.1em;">
+                関係者以外立入禁止
+              </p>
+            </div>
+
+            <!-- Tabs -->
+            <div style="padding: 0 1.5rem;">
+              <div class="tab-buttons">
+                <button class="tab-button active" data-tab="login">ログイン</button>
+                <button class="tab-button" data-tab="register">新規登録</button>
+              </div>
+            </div>
+
+            <!-- Login Form -->
+            <div class="card-content tab-content active" id="login-tab" style="padding-top: 0;">
+              <form id="loginForm" class="space-y-4">
+                <div class="form-group">
+                  <label class="form-label font-mono" style="font-size: 0.75rem; color: rgba(0, 255, 255, 0.8); text-transform: uppercase;">
+                    機関員ID
+                  </label>
+                  <input 
+                    type="text" 
+                    id="loginId"
+                    class="form-input" 
+                    placeholder="K-000-000"
+                    style="background-color: rgba(255, 255, 255, 0.05);"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label font-mono" style="font-size: 0.75rem; color: rgba(0, 255, 255, 0.8); text-transform: uppercase;">
+                    パスキー
+                  </label>
+                  <input 
+                    type="password"
+                    id="loginPassword" 
+                    class="form-input" 
+                    placeholder="••••••••••••"
+                    style="background-color: rgba(255, 255, 255, 0.05);"
+                    required
+                  />
+                </div>
+                <button 
+                  type="submit" 
+                  class="btn btn-primary" 
+                  style="width: 100%; margin-top: 1rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;"
+                  id="loginButton"
+                >
+                  <span id="loginButtonText">認証を実行</span>
+                  <svg id="loginSpinner" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none; animation: spin 1s linear infinite;">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"/>
+                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"/>
+                  </svg>
+                </button>
+              </form>
+            </div>
+
+            <!-- Register Form -->
+            <div class="card-content tab-content" id="register-tab" style="padding-top: 0;">
+              <form id="registerForm" class="space-y-4">
+                <div class="form-group">
+                  <label class="form-label font-mono" style="font-size: 0.75rem; color: rgba(0, 255, 255, 0.8); text-transform: uppercase;">
+                    希望機関員ID
+                  </label>
+                  <input 
+                    type="text"
+                    id="registerId" 
+                    class="form-input" 
+                    placeholder="K-000-000"
+                    style="background-color: rgba(255, 255, 255, 0.05);"
+                    required
+                  />
+                  <small class="font-mono" style="font-size: 0.65rem; color: var(--muted-foreground); margin-top: 0.25rem; display: block;">
+                    形式: K-XXX-XXX (X は数字)
+                  </small>
+                </div>
+                <div class="form-group">
+                  <label class="form-label font-mono" style="font-size: 0.75rem; color: rgba(0, 255, 255, 0.8); text-transform: uppercase;">
+                    氏名
+                  </label>
+                  <input 
+                    type="text"
+                    id="registerName" 
+                    class="form-input" 
+                    placeholder="山田 太郎"
+                    style="background-color: rgba(255, 255, 255, 0.05);"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label font-mono" style="font-size: 0.75rem; color: rgba(0, 255, 255, 0.8); text-transform: uppercase;">
+                    パスキー
+                  </label>
+                  <input 
+                    type="password"
+                    id="registerPassword" 
+                    class="form-input" 
+                    placeholder="••••••••••••"
+                    style="background-color: rgba(255, 255, 255, 0.05);"
+                    required
+                    minlength="8"
+                  />
+                  <small class="font-mono" style="font-size: 0.65rem; color: var(--muted-foreground); margin-top: 0.25rem; display: block;">
+                    最低8文字以上
+                  </small>
+                </div>
+                <div class="form-group">
+                  <label class="form-label font-mono" style="font-size: 0.75rem; color: rgba(0, 255, 255, 0.8); text-transform: uppercase;">
+                    パスキー確認
+                  </label>
+                  <input 
+                    type="password"
+                    id="registerPasswordConfirm" 
+                    class="form-input" 
+                    placeholder="••••••••••••"
+                    style="background-color: rgba(255, 255, 255, 0.05);"
+                    required
+                    minlength="8"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label font-mono" style="font-size: 0.75rem; color: rgba(0, 255, 255, 0.8); text-transform: uppercase;">
+                    希望部門
+                  </label>
+                  <select 
+                    id="registerDivision"
+                    class="form-input" 
+                    style="background-color: rgba(255, 255, 255, 0.05);"
+                    required
+                  >
+                    <option value="">選択してください</option>
+                    <option value="convergence">収束部門</option>
+                    <option value="support">支援部門</option>
+                    <option value="engineering">工作部門</option>
+                    <option value="foreign">外事部門</option>
+                    <option value="port">港湾部門</option>
+                  </select>
+                </div>
+                <button 
+                  type="submit" 
+                  class="btn btn-primary" 
+                  style="width: 100%; margin-top: 1rem; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 600;"
+                  id="registerButton"
+                >
+                  <span id="registerButtonText">登録申請を送信</span>
+                  <svg id="registerSpinner" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="display: none; animation: spin 1s linear infinite;">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"/>
+                    <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"/>
+                  </svg>
+                </button>
+              </form>
+            </div>
+
+            <!-- Footer -->
+            <div class="card-content text-center" style="border-top: 1px solid rgba(255, 255, 255, 0.05); padding-top: 1rem; padding-bottom: 1rem;">
+              <p class="font-mono" style="font-size: 0.625rem; color: rgba(156, 163, 175, 0.5); max-width: 12.5rem; margin: 0 auto; line-height: 1.3;">
+                警告：未認可のアクセスは海蝕プロトコルに基づき、クラス4の重罪とみなされます。
+              </p>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Toast Notifications -->
+  <div id="toastError" style="position: fixed; bottom: 2rem; right: 2rem; background-color: rgba(127, 29, 29, 0.9); border: 1px solid var(--destructive); padding: 1rem 1.5rem; max-width: 20rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; backdrop-filter: blur(10px); z-index: 9999;">
+    <div style="font-weight: 600; color: white; margin-bottom: 0.25rem;" id="toastErrorTitle">ACCESS DENIED</div>
+    <div style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.8);" id="toastErrorMessage">Invalid credentials. This attempt has been logged.</div>
+  </div>
+
+  <div id="toastSuccess" style="position: fixed; bottom: 2rem; right: 2rem; background-color: rgba(6, 78, 59, 0.9); border: 1px solid rgb(16, 185, 129); padding: 1rem 1.5rem; max-width: 20rem; opacity: 0; transition: opacity 0.3s; pointer-events: none; backdrop-filter: blur(10px); z-index: 9999;">
+    <div style="font-weight: 600; color: white; margin-bottom: 0.25rem;" id="toastSuccessTitle">SUCCESS</div>
+    <div style="font-size: 0.875rem; color: rgba(255, 255, 255, 0.8);" id="toastSuccessMessage">Operation completed successfully.</div>
+  </div>
+
+  <script src="./js/sidebar.js"></script>
+  <script src="./js/main.js"></script>
+  <script src="./js/progress.js"></script>
+  <script>
+    // LocalStorage keys
+    const USERS_KEY = 'kaishoku_users';
+    const CURRENT_USER_KEY = 'kaishoku_current_user';
+
+    // Utility functions
+    function getUsers() {
+      const users = localStorage.getItem(USERS_KEY);
+      return users ? JSON.parse(users) : [];
+    }
+
+    function saveUsers(users) {
+      localStorage.setItem(USERS_KEY, JSON.stringify(users));
+    }
+
+    function getCurrentUser() {
+      const user = localStorage.getItem(CURRENT_USER_KEY);
+      return user ? JSON.parse(user) : null;
+    }
+
+    function setCurrentUser(user) {
+      localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
+    }
+
+    function updateUserInStorage(updatedUser) {
+      // Update in users list
+      const users = getUsers();
+      const index = users.findIndex(u => u.id === updatedUser.id);
+      if (index !== -1) {
+        users[index] = updatedUser;
+        saveUsers(users);
+      }
+      
+      // Update current user
+      setCurrentUser(updatedUser);
+    }
+
+    function clearCurrentUser() {
+      localStorage.removeItem(CURRENT_USER_KEY);
+    }
+
+    function showToast(type, title, message) {
+      const toast = type === 'error' ? document.getElementById('toastError') : document.getElementById('toastSuccess');
+      const titleEl = document.getElementById(type === 'error' ? 'toastErrorTitle' : 'toastSuccessTitle');
+      const messageEl = document.getElementById(type === 'error' ? 'toastErrorMessage' : 'toastSuccessMessage');
+      
+      titleEl.textContent = title;
+      messageEl.textContent = message;
+      
+      toast.style.opacity = '1';
+      toast.style.pointerEvents = 'auto';
+      
+      setTimeout(function() {
+        toast.style.opacity = '0';
+        toast.style.pointerEvents = 'none';
+      }, 3000);
+    }
+
+    // Tab switching
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', function() {
+        const targetTab = this.getAttribute('data-tab');
+        
+        // Update buttons
+        document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Update content
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(targetTab + '-tab').classList.add('active');
+      });
+    });
+
+    // Register form
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const button = document.getElementById('registerButton');
+      const buttonText = document.getElementById('registerButtonText');
+      const spinner = document.getElementById('registerSpinner');
+      
+      const id = document.getElementById('registerId').value.trim();
+      const name = document.getElementById('registerName').value.trim();
+      const password = document.getElementById('registerPassword').value;
+      const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+      const division = document.getElementById('registerDivision').value;
+      
+      // Validation
+      const idPattern = /^K-\d{3}-\d{3}$/;
+      if (!idPattern.test(id)) {
+        showToast('error', 'VALIDATION ERROR', '機関員IDの形式が正しくありません (K-XXX-XXX)');
+        return;
+      }
+      
+      if (password.length < 8) {
+        showToast('error', 'VALIDATION ERROR', 'パスキーは最低8文字必要です');
+        return;
+      }
+      
+      if (password !== passwordConfirm) {
+        showToast('error', 'VALIDATION ERROR', 'パスキーが一致しません');
+        return;
+      }
+      
+      if (!division) {
+        showToast('error', 'VALIDATION ERROR', '希望部門を選択してください');
+        return;
+      }
+      
+      // Check if user already exists
+      const users = getUsers();
+      if (users.find(u => u.id === id)) {
+        showToast('error', 'REGISTRATION FAILED', 'この機関員IDは既に使用されています');
+        return;
+      }
+      
+      // Show loading
+      button.disabled = true;
+      buttonText.style.display = 'none';
+      spinner.style.display = 'block';
+      
+      // Simulate registration delay
+      setTimeout(function() {
+        // Create new user
+        const newUser = {
+          id: id,
+          name: name,
+          password: password,
+          division: division,
+          level: 0,
+          registeredAt: new Date().toISOString()
+        };
+        
+        users.push(newUser);
+        saveUsers(users);
+        
+        // Reset form
+        document.getElementById('registerForm').reset();
+        button.disabled = false;
+        buttonText.style.display = 'inline';
+        spinner.style.display = 'none';
+        
+        // Show success and switch to login
+        showToast('success', 'REGISTRATION COMPLETE', '登録が完了しました。ログインしてください。');
+        
+        setTimeout(function() {
+          document.querySelector('[data-tab="login"]').click();
+          document.getElementById('loginId').value = id;
+        }, 1000);
+      }, 2000);
+    });
+
+    // Login form
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const button = document.getElementById('loginButton');
+      const buttonText = document.getElementById('loginButtonText');
+      const spinner = document.getElementById('loginSpinner');
+      
+      const id = document.getElementById('loginId').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      
+      // Show loading
+      button.disabled = true;
+      buttonText.style.display = 'none';
+      spinner.style.display = 'block';
+      
+      // Simulate login delay
+      setTimeout(function() {
+        const users = getUsers();
+        const user = users.find(u => u.id === id && u.password === password);
+        
+        if (user) {
+          // Login successful
+          setCurrentUser(user);
+          
+          // Check for first login or daily login bonus
+          const now = new Date();
+          const lastLogin = user.lastLogin ? new Date(user.lastLogin) : null;
+          const isFirstLogin = !user.lastLogin;
+          
+          // Check if it's a new day
+          const isDailyLogin = lastLogin && (
+            now.toDateString() !== lastLogin.toDateString()
+          );
+          
+          // Update last login
+          user.lastLogin = now.toISOString();
+          updateUserInStorage(user);
+          
+          showToast('success', 'ACCESS GRANTED', `ようこそ、${user.name}さん (${user.id})`);
+          
+          // Redirect to dashboard after 1.5 seconds
+          setTimeout(function() {
+            window.location.href = './dashboard.html';
+            
+            // Award XP bonuses after redirect (will show on dashboard)
+            if (isFirstLogin) {
+              setTimeout(() => {
+                if (window.ProgressSystem) {
+                  ProgressSystem.trackActivity('first_login');
+                }
+              }, 500);
+            } else if (isDailyLogin) {
+              setTimeout(() => {
+                if (window.ProgressSystem) {
+                  ProgressSystem.trackActivity('daily_login');
+                }
+              }, 500);
+            }
+          }, 1500);
+        } else {
+          // Login failed
+          button.disabled = false;
+          buttonText.style.display = 'inline';
+          spinner.style.display = 'none';
+          
+          showToast('error', 'ACCESS DENIED', 'Invalid credentials. This attempt has been logged.');
+        }
+      }, 2000);
+    });
+
+    // Check if already logged in
+    window.addEventListener('load', function() {
+      const currentUser = getCurrentUser();
+      if (currentUser) {
+        // Already logged in, redirect to dashboard
+        window.location.href = './dashboard.html';
+      }
+    });
+  </script>
+</body>
+</html>

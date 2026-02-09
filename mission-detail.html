@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>収束案件詳細 - 海蝕機関</title>
+  <link rel="icon" type="image/png" href="./images/favicon.png">
+  <link rel="stylesheet" href="./css/style.css">
+  <style>
+    .detail-header {
+      background: linear-gradient(135deg, rgba(26, 39, 56, 0.6), rgba(15, 23, 42, 0.6));
+      border: 2px solid var(--primary);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .detail-title {
+      font-size: 2rem;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .detail-meta {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .meta-badge {
+      padding: 0.5rem 1rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      border: 1px solid;
+    }
+
+    .status-active {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--destructive);
+      color: var(--destructive);
+    }
+
+    .status-monitoring {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgb(245, 158, 11);
+      color: rgb(245, 158, 11);
+    }
+
+    .status-completed {
+      background: rgba(16, 185, 129, 0.1);
+      border-color: rgb(16, 185, 129);
+      color: rgb(16, 185, 129);
+    }
+
+    .priority-critical {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: var(--destructive);
+      color: var(--destructive);
+    }
+
+    .priority-warning {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: rgb(245, 158, 11);
+      color: rgb(245, 158, 11);
+    }
+
+    .priority-safe {
+      background: rgba(0, 255, 255, 0.1);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .detail-card {
+      background: rgba(26, 39, 56, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 1.5rem;
+    }
+
+    .card-title {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      text-transform: uppercase;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      color: var(--muted-foreground);
+      font-size: 0.875rem;
+    }
+
+    .info-value {
+      color: white;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      text-align: right;
+    }
+
+    .timeline {
+      position: relative;
+      padding-left: 2rem;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 0.5rem;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--primary), transparent);
+    }
+
+    .timeline-item {
+      position: relative;
+      padding: 1rem 0 1rem 1.5rem;
+    }
+
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 1.5rem;
+      width: 10px;
+      height: 10px;
+      background: var(--primary);
+      border: 2px solid var(--background);
+      border-radius: 50%;
+      box-shadow: 0 0 10px var(--primary);
+    }
+
+    .timeline-item.ongoing::before {
+      background: var(--destructive);
+      animation: pulse 2s infinite;
+    }
+
+    .timeline-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .timeline-event {
+      color: white;
+      font-size: 0.875rem;
+    }
+
+    .report-item {
+      background: rgba(0, 0, 0, 0.3);
+      border-left: 3px solid var(--primary);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .report-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+
+    .report-author {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      color: var(--primary);
+      font-weight: 600;
+    }
+
+    .report-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.7rem;
+      color: var(--muted-foreground);
+    }
+
+    .report-content {
+      color: var(--foreground);
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+
+    .module-tag {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      background: rgba(0, 255, 255, 0.1);
+      border: 1px solid var(--primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.75rem;
+      margin: 0.25rem;
+      color: var(--primary);
+    }
+
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--foreground);
+      text-decoration: none;
+      font-family: 'JetBrains Mono', monospace;
+      transition: all 0.3s;
+      margin-bottom: 2rem;
+    }
+
+    .back-button:hover {
+      border-color: var(--primary);
+      background: rgba(0, 255, 255, 0.1);
+    }
+
+    .result-box {
+      background: rgba(16, 185, 129, 0.1);
+      border: 2px solid rgb(16, 185, 129);
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    .result-title {
+      color: rgb(16, 185, 129);
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 1.125rem;
+      margin-bottom: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    .result-content {
+      color: white;
+      line-height: 1.6;
+    }
+
+    .security-warning {
+      background: rgba(239, 68, 68, 0.1);
+      border: 2px solid var(--destructive);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .security-warning svg {
+      color: var(--destructive);
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <!-- Sidebar content will be loaded by sidebar.js -->
+    </aside>
+
+    <button class="mobile-menu-toggle">
+      <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+    <div class="mobile-menu-overlay"></div>
+
+    <main class="main-content scanline">
+      <div class="container">
+        <div class="space-y-12 animate-fadeIn">
+          
+          <a href="./missions.html" class="back-button">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            案件一覧に戻る
+          </a>
+
+          <div id="missionDetail">
+            <!-- Content will be populated by JavaScript -->
+          </div>
+
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="./js/sidebar.js"></script>
+  <script src="./js/main.js"></script>
+  <script src="./js/modal.js"></script>
+  <script src="./js/progress.js"></script>
+  <script src="./js/mission-data.js"></script>
+  <script src="./js/mission-detail.js"></script>
+</body>
+</html>
