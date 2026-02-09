@@ -1,0 +1,190 @@
+// Catalog Data
+window.CatalogData = {
+  modules: [
+    {
+      id: 'mod-001',
+      code: 'M-001-α',
+      name: '空間安定化フィールド',
+      classification: 'safe',
+      description: '次元の歪みを抑制し、空間の安定性を高めるための基本モジュール。',
+      range: '半径20m',
+      duration: '15分',
+      energy: '中',
+      developer: '工作部門',
+      details: '海蝕現象の初期段階で使用される標準的な収束装置。次元境界の揺らぎを検知し、自動的に安定化フィールドを展開する。',
+      warning: '連続使用は30分以内に制限。過度な使用は装置の劣化を招く。'
+    },
+    {
+      id: 'mod-002',
+      code: 'M-002-β',
+      name: '次元境界封鎖',
+      classification: 'caution',
+      description: '階宙次元への通路を一時的に封鎖し、海蝕実体の侵入を防ぐ。',
+      range: '半径50m',
+      duration: '30分',
+      energy: '高',
+      developer: '工作部門',
+      details: '港湾部門との共同開発により実現した高度な封鎖システム。境界ゲートを強制的に閉鎖することで、未認可の実体侵入を防ぐ。',
+      warning: '使用中は機関員の次元移動も不可能になる。緊急時以外の使用を禁止。'
+    },
+    {
+      id: 'mod-003',
+      code: 'M-003-γ',
+      name: '実体無力化パルス',
+      classification: 'danger',
+      description: '海蝕実体の存在基盤を破壊する高出力パルス波を発生させる。',
+      range: '半径10m',
+      duration: '瞬間',
+      energy: '超高',
+      developer: '工作部門',
+      details: '残滓から抽出した高純度エネルギーを使用。対象の次元座標を強制的にずらすことで実体を消滅させる。',
+      warning: '周辺の電子機器に深刻なダメージを与える。使用時は半径100m以内の避難が必須。'
+    },
+    {
+      id: 'mod-004',
+      code: 'M-004-δ',
+      name: '時空間歪曲装置',
+      classification: 'classified',
+      description: '局所的な時空間の流れを操作し、海蝕現象の進行を遅延させる。',
+      range: '半径5m',
+      duration: '5分（体感時間: 1時間）',
+      energy: '極高',
+      developer: '工作部門 - 機密プロジェクト',
+      details: '[データ削除済] 理論上、時間の流れを最大12倍まで減速可能。実験段階のため実戦配備は限定的。',
+      warning: '[機密情報] 使用者は重度の時間感覚喪失症を経験する可能性あり。LEVEL 4以上の許可必須。'
+    },
+    {
+      id: 'mod-005',
+      code: 'M-005-ε',
+      name: '残滓回収システム',
+      classification: 'safe',
+      description: '海蝕現象収束後に残る残滓を安全に回収・保管するための装置。',
+      range: '半径15m',
+      duration: '10分',
+      energy: '低',
+      developer: '工作部門',
+      details: '特殊な磁場を形成し、残滓を引き寄せて安定化させる。回収された残滓は研究用途に使用される。',
+      warning: '残滓の種類によっては予期しない反応を示す可能性あり。防護装備の着用を推奨。'
+    },
+    {
+      id: 'mod-006',
+      code: 'M-006-ζ',
+      name: '認識阻害フィールド',
+      classification: 'caution',
+      description: '一般市民の認識から海蝕現象を隠蔽するための精神干渉装置。',
+      range: '半径100m',
+      duration: '1時間',
+      energy: '中',
+      developer: '外事部門・工作部門共同',
+      details: '対象の視覚・聴覚・記憶に微細な干渉を行い、海蝕現象を「ありふれた光景」として認識させる。',
+      warning: '機関員自身も影響を受ける可能性あり。使用時は必ず除外タグを装着すること。'
+    },
+    {
+      id: 'mod-007',
+      code: 'M-007-η',
+      name: '次元共鳴増幅器',
+      classification: 'danger',
+      description: '残滓のエネルギーを増幅し、より強力な収束効果を発揮する。',
+      range: '半径30m',
+      duration: '20分',
+      energy: '超高',
+      developer: '工作部門',
+      details: '残滓の不安定な性質を利用し、通常の3倍の出力を実現。ただし、制御を失うリスクも3倍。',
+      warning: '暴走時は周辺一帯が海蝕化する危険性あり。LEVEL 3以上の機関員のみ使用可。'
+    },
+    {
+      id: 'mod-008',
+      code: 'M-008-θ',
+      name: '生体保護シールド',
+      classification: 'safe',
+      description: '海蝕現象による生体への直接的な影響を軽減する防護フィールド。',
+      range: '個人',
+      duration: '1時間',
+      energy: '低',
+      developer: '支援部門',
+      details: '携帯型の小型モジュール。次元の歪みから生体組織を保護し、精神的・肉体的ダメージを最小化する。',
+      warning: '完全な防護ではない。長時間の暴露は避けること。'
+    }
+  ],
+
+  entities: [
+    {
+      id: 'ent-001',
+      code: 'E-001',
+      name: '漂流者',
+      classification: 'safe',
+      description: '階宙次元から迷い込んだ知性体。敵対性は低い。',
+      threat: '低',
+      intelligence: '中',
+      origin: '階宙次元・不明領域',
+      appearance: '半透明の人型。顔の特徴は不明瞭で、常に漂うように移動する。',
+      behavior: '目的もなく徘徊する。人間を発見すると興味を示すが、攻撃はしない。',
+      containment: '対話による誘導が可能。元の次元への帰還を支援することで自主的に退去する。'
+    },
+    {
+      id: 'ent-002',
+      code: 'E-002',
+      name: '波喰い',
+      classification: 'danger',
+      description: '海蝕現象そのものを捕食する異常存在。',
+      threat: '高',
+      intelligence: '低',
+      origin: '階宙次元・深淵領域',
+      appearance: '黒い霧状の集合体。中心に無数の目のような発光体を持つ。',
+      behavior: '海蝕現象が発生すると出現し、その場のエネルギーを吸収する。満腹になるまで移動しない。',
+      containment: '実体無力化パルスが有効。ただし複数体が同時出現することが多く、制圧は困難。'
+    },
+    {
+      id: 'ent-003',
+      code: 'E-003',
+      name: '鏡面侵食体',
+      classification: 'caution',
+      description: '対象の姿を模倣し、その存在を侵食する寄生型実体。',
+      threat: '中',
+      intelligence: '中',
+      origin: '階宙次元・境界領域',
+      appearance: '初期は無形。接触した生物の外見を完全にコピーする。',
+      behavior: '宿主の記憶と人格を徐々に吸収し、最終的に入れ替わる。本物との区別は困難。',
+      containment: '次元共鳴パターンの微細な違いで識別可能。発見次第、即座に隔離・無力化が必要。'
+    },
+    {
+      id: 'ent-004',
+      code: 'E-004',
+      name: '時間遅延帯',
+      classification: 'caution',
+      description: '周囲の時間流を著しく遅延させる現象型実体。',
+      threat: '中',
+      intelligence: 'なし',
+      origin: '階宙次元・時層',
+      appearance: '淡い青白い光の球体。内部では時間が通常の1/100の速度で流れる。',
+      behavior: '移動せず、その場に留まり続ける。接近した物体は自動的に取り込まれる。',
+      containment: '時空間歪曲装置で相殺可能。ただし高度な技術と経験が必要。'
+    },
+    {
+      id: 'ent-005',
+      code: 'E-005',
+      name: '概念捕食者',
+      classification: 'classified',
+      description: '[機密] 抽象概念そのものを捕食する高次元存在。',
+      threat: '極高',
+      intelligence: '極高',
+      origin: '[削除済]',
+      appearance: '[アクセス権限不足]',
+      behavior: '[機密情報] 「忘却」「消失」「不在」といった概念を実体化させ、それを糧とする。',
+      containment: '[LEVEL 5以上] 現在、完全な収束手段は確立されていない。接触を避けることが最優先。'
+    },
+    {
+      id: 'ent-006',
+      code: 'E-006',
+      name: '不根の行商人',
+      classification: 'safe',
+      description: '次元間を移動する商人。友好的だが、取引には注意が必要。',
+      threat: '極低',
+      intelligence: '高',
+      origin: '不根（次元間移動種族）',
+      appearance: '人間に似た姿だが、目が3つある。常に大きな荷物を背負っている。',
+      behavior: '「取引」を好む。物品だけでなく、記憶や感情も商品として扱う。',
+      containment: '友好的であれば収束不要。ただし不当な取引には外事部門が介入する。'
+    }
+  ]
+};
