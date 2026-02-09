@@ -1,9 +1,9 @@
 // Map Page Script
 (function() {
   // Check if user has access to this page
-    if (!ProgressSystem.checkPageAccess('missions.html')) {
+    if (!ProgressSystem.checkPageAccess('map.html')) {
     ModalSystem.warning(
-      'このページにアクセスするには LEVEL 2 が必要です。',
+      'このページにアクセスするには LEVEL 1 が必要です。',
       'ACCESS DENIED'
     ).then(() => {
       window.location.href = './dashboard.html';
