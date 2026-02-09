@@ -3,7 +3,7 @@
   // Check if user has access to this page
   if (!ProgressSystem.checkPageAccess('map.html')) {
     ModalSystem.warning(
-      'このページにアクセスするには LEVEL 1 が必要です。<br><br>ダッシュボードで経験値を確認し、レベルアップしてください。',
+      'このページにアクセスするには LEVEL 1 が必要です。',
       'ACCESS DENIED'
     ).then(() => {
       window.location.href = './dashboard.html';
