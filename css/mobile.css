@@ -1,0 +1,771 @@
+/**
+ * Mobile-Friendly Responsive Styles
+ * モバイルに最適化されたレスポンシブスタイル
+ */
+
+/* ========================================
+   Base Mobile Optimizations
+   ======================================== */
+
+/* すべてのデバイスで適用される基本スタイル */
+body {
+  /* テキストの自動サイズ調整を防ぐ */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  
+  /* スムーズスクロール */
+  scroll-behavior: smooth;
+}
+
+/* タッチデバイス向けの最適化 */
+@media (hover: none) and (pointer: coarse) {
+  /* タッチターゲットサイズを拡大 */
+  a, button, .btn, .nav-item {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* タップハイライト色を調整 */
+  a, button {
+    -webkit-tap-highlight-color: rgba(0, 255, 255, 0.2);
+  }
+}
+
+/* ========================================
+   Container & Layout
+   ======================================== */
+
+/* コンテナのレスポンシブパディング */
+.container {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  max-width: 100%;
+}
+
+@media (min-width: 640px) {
+  .container {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    max-width: 1400px;
+  }
+}
+
+/* メインコンテンツの調整 */
+.main-content {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* モバイルでのトップパディング調整（ハンバーガーメニュー用） */
+@media (max-width: 768px) {
+  .main-content .container {
+    padding-top: 4rem;
+  }
+}
+
+/* ========================================
+   Typography - レスポンシブフォントサイズ
+   ======================================== */
+
+/* 大きな数値表示用のクラス */
+.display-number {
+  font-size: 3rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+}
+
+.display-text {
+  font-size: 2rem;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+}
+
+/* 小型モバイル（320px〜480px） */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  
+  h1, .glitch-text {
+    font-size: 1.75rem !important;
+    line-height: 1.2;
+  }
+  
+  h2 {
+    font-size: 1.5rem !important;
+    line-height: 1.3;
+  }
+  
+  h3 {
+    font-size: 1.25rem !important;
+    line-height: 1.4;
+  }
+  
+  .card-title {
+    font-size: 0.8125rem;
+  }
+  
+  .badge {
+    font-size: 0.6875rem;
+    padding: 0.2rem 0.5rem;
+  }
+  
+  /* 大きな数値表示を調整 */
+  .display-number,
+  [style*="font-size: 3rem"],
+  [style*="font-size: 3.5rem"] {
+    font-size: 2rem !important;
+  }
+  
+  .display-text,
+  [style*="font-size: 2rem"] {
+    font-size: 1.5rem !important;
+  }
+  
+  /* 中サイズのテキストも調整 */
+  [style*="font-size: 1.5rem"] {
+    font-size: 1.125rem !important;
+  }
+  
+  [style*="font-size: 1.25rem"] {
+    font-size: 1rem !important;
+  }
+}
+
+/* 標準モバイル（481px〜768px） */
+@media (min-width: 481px) and (max-width: 768px) {
+  body {
+    font-size: 15px;
+  }
+  
+  h1, .glitch-text {
+    font-size: 2rem !important;
+  }
+  
+  h2 {
+    font-size: 1.75rem !important;
+  }
+  
+  h3 {
+    font-size: 1.5rem !important;
+  }
+  
+  /* 大きな数値表示を調整 */
+  .display-number,
+  [style*="font-size: 3rem"],
+  [style*="font-size: 3.5rem"] {
+    font-size: 2.25rem !important;
+  }
+  
+  .display-text,
+  [style*="font-size: 2rem"] {
+    font-size: 1.75rem !important;
+  }
+}
+
+/* タブレット（769px〜1024px） */
+@media (min-width: 769px) and (max-width: 1024px) {
+  body {
+    font-size: 16px;
+  }
+  
+  h1 {
+    font-size: 2.5rem !important;
+  }
+}
+
+/* ========================================
+   Grid System - レスポンシブグリッド
+   ======================================== */
+
+.grid {
+  gap: 1rem;
+}
+
+/* 小型モバイル */
+@media (max-width: 480px) {
+  .grid {
+    gap: 0.75rem !important;
+  }
+  
+  .grid-cols-1,
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* grid-columnのリセット */
+  [style*="grid-column"] {
+    grid-column: auto !important;
+  }
+  
+  /* ネストされたグリッドもリセット */
+  .grid .grid,
+  .grid.grid-cols-2,
+  .grid.grid-cols-3 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* インラインスタイルのgapもリセット */
+  .grid[style*="gap"] {
+    gap: 0.75rem !important;
+  }
+  
+  /* 大きな数値の表示を調整 */
+  [style*="font-size: 3"] {
+    font-size: 2rem !important;
+  }
+  
+  [style*="font-size: 2"] {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* 標準モバイル */
+@media (min-width: 481px) and (max-width: 768px) {
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* grid-columnのリセット */
+  [style*="grid-column"] {
+    grid-column: auto !important;
+  }
+  
+  /* インラインスタイルのgapも調整 */
+  .grid[style*="gap"] {
+    gap: 1rem !important;
+  }
+}
+
+/* タブレット */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .grid-cols-3,
+  .grid-cols-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* デスクトップ小 */
+@media (min-width: 1025px) and (max-width: 1280px) {
+  .grid-cols-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ========================================
+   Cards - レスポンシブカード
+   ======================================== */
+
+@media (max-width: 768px) {
+  .card {
+    margin-bottom: 1rem;
+  }
+  
+  .card-header {
+    padding: 0.875rem 1rem;
+  }
+  
+  .card-content {
+    padding: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .card-header {
+    padding: 0.75rem;
+  }
+  
+  .card-content {
+    padding: 0.75rem;
+  }
+}
+
+/* ========================================
+   Buttons - レスポンシブボタン
+   ======================================== */
+
+@media (max-width: 768px) {
+  .btn {
+    padding: 0.875rem 1.25rem;
+    font-size: 0.875rem;
+  }
+  
+  /* flex-wrapがない単独のボタンはフル幅 */
+  .btn:not(.flex-wrap *):not([style*="flex-wrap"] *) {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  /* フレックスコンテナ内のボタンは適切なサイズ */
+  .flex-wrap .btn,
+  [style*="flex-wrap"] .btn {
+    width: auto;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .btn {
+    padding: 0.75rem 1rem;
+    font-size: 0.8125rem;
+  }
+  
+  /* 小型モバイルでは全てのボタンをフル幅に */
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ========================================
+   Forms - レスポンシブフォーム
+   ======================================== */
+
+@media (max-width: 768px) {
+  .form-group {
+    margin-bottom: 1.25rem;
+  }
+  
+  .form-input {
+    padding: 0.875rem;
+    font-size: 16px; /* iOSのズーム防止 */
+  }
+  
+  .form-label {
+    font-size: 0.8125rem;
+  }
+}
+
+/* ========================================
+   Tables - レスポンシブテーブル
+   ======================================== */
+
+@media (max-width: 768px) {
+  /* テーブルをカード形式に変換 */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* または、テーブルを縦積みに */
+  .responsive-table {
+    display: block;
+  }
+  
+  .responsive-table thead {
+    display: none;
+  }
+  
+  .responsive-table tbody,
+  .responsive-table tr,
+  .responsive-table td {
+    display: block;
+    width: 100%;
+  }
+  
+  .responsive-table tr {
+    margin-bottom: 1rem;
+    border: 1px solid var(--border);
+    padding: 0.75rem;
+  }
+  
+  .responsive-table td {
+    text-align: left;
+    padding: 0.5rem 0;
+    border: none;
+  }
+  
+  .responsive-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    display: inline-block;
+    width: 40%;
+    margin-right: 1rem;
+  }
+}
+
+/* ========================================
+   Spacing Utilities - レスポンシブスペーシング
+   ======================================== */
+
+@media (max-width: 768px) {
+  .space-y-12 > * + * {
+    margin-top: 2rem !important;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1.5rem !important;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 1rem !important;
+  }
+  
+  /* セパレータのマージン調整 */
+  .separator {
+    margin: 2rem 0 !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .space-y-12 > * + * {
+    margin-top: 1.5rem !important;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1rem !important;
+  }
+  
+  .space-y-4 > * + * {
+    margin-top: 0.75rem !important;
+  }
+  
+  /* セパレータのマージン調整 */
+  .separator {
+    margin: 1.5rem 0 !important;
+  }
+}
+
+/* ========================================
+   Images & Media - レスポンシブメディア
+   ======================================== */
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* アスペクト比を維持 */
+.aspect-video {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+}
+
+.aspect-square {
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+/* ========================================
+   Flexbox - レスポンシブフレックス
+   ======================================== */
+
+@media (max-width: 768px) {
+  .flex {
+    flex-direction: column;
+    gap: 0.75rem !important;
+  }
+  
+  .flex-wrap {
+    flex-wrap: wrap;
+  }
+  
+  /* 水平方向のflexは維持したい場合 */
+  .flex-row-mobile {
+    flex-direction: row;
+  }
+  
+  /* items-centerなどは維持 */
+  .items-center {
+    align-items: flex-start;
+  }
+  
+  /* ボタンのフレックスコンテナ */
+  .flex.gap-4,
+  [style*="flex gap-4"] {
+    gap: 0.75rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .flex {
+    gap: 0.5rem !important;
+  }
+}
+
+/* ========================================
+   Status Panel - ステータスパネル最適化
+   ======================================== */
+
+@media (max-width: 480px) {
+  .status-panel {
+    font-size: 0.75rem;
+  }
+  
+  .status-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+  }
+  
+  .status-label,
+  .status-value {
+    width: 100%;
+  }
+}
+
+/* ========================================
+   Division Cards - 部門カード最適化
+   ======================================== */
+
+@media (max-width: 768px) {
+  .division-card {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* ========================================
+   Progress Bar - プログレスバー
+   ======================================== */
+
+.progress-bar {
+  overflow: hidden;
+  background-color: rgba(255, 255, 255, 0.1);
+  height: 0.5rem;
+}
+
+@media (max-width: 480px) {
+  .progress-bar {
+    height: 0.375rem;
+  }
+}
+
+/* ========================================
+   Modal - レスポンシブモーダル
+   ======================================== */
+
+@media (max-width: 768px) {
+  .modal-content,
+  [id*="modal"] > div {
+    width: 95% !important;
+    max-width: 95% !important;
+    margin: 1rem;
+    padding: 1.25rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content,
+  [id*="modal"] > div {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0.5rem;
+    padding: 1rem !important;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+}
+
+/* ========================================
+   Navigation - ナビゲーション最適化
+   ======================================== */
+
+@media (max-width: 768px) {
+  .nav-item {
+    padding: 1rem 1.25rem;
+    font-size: 0.9375rem;
+  }
+}
+
+/* ========================================
+   Text Utilities - テキストユーティリティ
+   ======================================== */
+
+/* 読みやすさのための最大幅調整 */
+@media (max-width: 768px) {
+  [style*="max-width: 42rem"],
+  [style*="max-width: 48rem"] {
+    max-width: 100% !important;
+  }
+  
+  .text-lg {
+    font-size: 1.125rem !important;
+  }
+  
+  .text-xl {
+    font-size: 1.25rem !important;
+  }
+  
+  .text-2xl {
+    font-size: 1.5rem !important;
+  }
+  
+  .text-3xl {
+    font-size: 1.875rem !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .text-lg {
+    font-size: 1rem !important;
+  }
+  
+  .text-xl {
+    font-size: 1.125rem !important;
+  }
+  
+  .text-2xl {
+    font-size: 1.25rem !important;
+  }
+  
+  .text-3xl {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* ========================================
+   Hide/Show on Mobile - 表示切替
+   ======================================== */
+
+.hidden-mobile {
+  display: block;
+}
+
+.visible-mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hidden-mobile {
+    display: none !important;
+  }
+  
+  .visible-mobile {
+    display: block !important;
+  }
+  
+  .visible-mobile-flex {
+    display: flex !important;
+  }
+  
+  .visible-mobile-inline {
+    display: inline !important;
+  }
+}
+
+/* ========================================
+   Landscape Orientation - 横向き対応
+   ======================================== */
+
+@media (max-height: 500px) and (orientation: landscape) {
+  .container {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+  
+  .sidebar {
+    overflow-y: auto;
+  }
+}
+
+/* ========================================
+   Print Styles - 印刷対応
+   ======================================== */
+
+@media print {
+  .sidebar,
+  .mobile-menu-toggle,
+  .mobile-menu-overlay,
+  .btn {
+    display: none !important;
+  }
+  
+  .main-content {
+    margin-left: 0 !important;
+  }
+  
+  body {
+    background: white;
+    color: black;
+  }
+}
+
+/* ========================================
+   Accessibility - アクセシビリティ
+   ======================================== */
+
+/* フォーカス表示の強化 */
+@media (max-width: 768px) {
+  a:focus,
+  button:focus,
+  input:focus,
+  select:focus,
+  textarea:focus {
+    outline: 3px solid var(--primary);
+    outline-offset: 2px;
+  }
+}
+
+/* 縮小モーションの無効化 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ハイコントラストモード */
+@media (prefers-contrast: high) {
+  .card,
+  .btn,
+  .form-input {
+    border-width: 2px;
+  }
+}
+
+/* ========================================
+   Safe Area Insets - ノッチ対応
+   ======================================== */
+
+@supports (padding: max(0px)) {
+  .container {
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  
+  .sidebar {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ========================================
+   Overflow Prevention - オーバーフロー防止
+   ======================================== */
+
+@media (max-width: 768px) {
+  /* 横スクロール防止 */
+  body {
+    overflow-x: hidden;
+  }
+  
+  * {
+    max-width: 100%;
+  }
+  
+  /* 長い単語の折り返し */
+  p, li, td, span {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    hyphens: auto;
+  }
+}

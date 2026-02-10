@@ -1,36 +1,10 @@
-// Mobile Menu Toggle
+// Main JavaScript
+// モバイルメニューはsidebar.jsで処理されます
+
 document.addEventListener('DOMContentLoaded', function() {
-  const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
-  const sidebar = document.querySelector('.sidebar');
-  const mobileMenuOverlay = document.querySelector('.mobile-menu-overlay');
-
-  if (mobileMenuToggle) {
-    mobileMenuToggle.addEventListener('click', function() {
-      sidebar.classList.toggle('mobile-open');
-      mobileMenuOverlay.classList.toggle('active');
-    });
-  }
-
-  if (mobileMenuOverlay) {
-    mobileMenuOverlay.addEventListener('click', function() {
-      sidebar.classList.remove('mobile-open');
-      mobileMenuOverlay.classList.remove('active');
-    });
-  }
-
-  // Set active nav item based on current page
-  const currentPath = window.location.pathname;
-  const navItems = document.querySelectorAll('.nav-item');
-  
-  navItems.forEach(item => {
-    const href = item.getAttribute('href');
-    if (href === currentPath || (currentPath === '/index.html' && href === './index.html')) {
-      item.classList.add('active');
-    }
-  });
-
   // Update sidebar with logged in user info
-  updateSidebarUserInfo();
+  // この処理はsidebar.jsで行われるため、ここでは不要
+  // updateSidebarUserInfo();
 });
 
 // Auth utility functions
@@ -51,20 +25,6 @@ const AUTH_UTILS = {
     window.location.href = './login.html';
   }
 };
-
-// Update sidebar user info if logged in
-function updateSidebarUserInfo() {
-  const user = AUTH_UTILS.getCurrentUser();
-  const userNameEl = document.getElementById('sidebarUserName');
-  const userLevelEl = document.getElementById('sidebarUserLevel');
-  
-  if (user && userNameEl) {
-    userNameEl.textContent = user.name;
-    if (userLevelEl) {
-      userLevelEl.textContent = `LEVEL ${user.level}`;
-    }
-  }
-}
 
 // Terminal Logs Animation (for home page)
 function initTerminalLogs() {

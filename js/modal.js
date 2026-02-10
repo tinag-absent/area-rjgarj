@@ -34,7 +34,8 @@ const ModalSystem = (function() {
       confirmText = '了解',
       cancelText = 'キャンセル',
       onConfirm = null,
-      onCancel = null
+      onCancel = null,
+      closeOnOverlay = false
     } = options;
 
     const container = createModalContainer();
@@ -210,13 +211,14 @@ const ModalSystem = (function() {
     }
 
     // Close on overlay click
-    container.addEventListener('click', (e) => {
-      if (e.target === container) {
-        closeModal();
-        if (onCancel) onCancel();
-      }
-    });
-
+    if (closeOnOverlay) {
+  container.addEventListener('click', (e) => {
+    if (e.target === container) {
+      closeModal();
+      if (onCancel) onCancel();
+    }
+  });
+}
     // Add animations
     if (!document.getElementById('modal-animations')) {
       const style = document.createElement('style');

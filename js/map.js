@@ -1,8 +1,6 @@
 // Map Page Script
 (function() {
   // Check if user has access to this page
-
-
     if (!ProgressSystem.checkPageAccess('map.html')) {
     ModalSystem.warning(
       'このページにアクセスするには LEVEL 1 が必要です。',
