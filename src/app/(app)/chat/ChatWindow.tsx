@@ -36,7 +36,7 @@ const fetcher = (url: string) => apiFetch(url).then((r) => r.json());
 export default function ChatWindow({ agentId }: { agentId: string }) {
   const user = useUserStore((s) => s.user);
   const addToast = useNotificationStore((s) => s.addToast);
-  const updateXp = useUserStore((s) => s.addXp);
+  const addXp = useUserStore((s) => s.addXp);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const [activeChannel, setActiveChannel] = useState("global");
