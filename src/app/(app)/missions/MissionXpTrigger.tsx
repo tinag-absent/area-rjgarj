@@ -9,7 +9,7 @@ import { useNotificationStore } from "@/store/notificationStore";
  * 重複付与防止は /api/users/me/xp の activity 単位で行う。
  */
 export default function MissionXpTrigger({ completedCount }: { completedCount: number }) {
-  const updateXp    = useUserStore(s => s.updateXp);
+  const addXp    = useUserStore(s => s.addXp);
   const addToast    = useNotificationStore(s => s.addToast);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function MissionXpTrigger({ completedCount }: { completedCount: n
             if (data.leveledUp) {
               addToast({ type: "levelup" as never, title: `LEVEL UP → LEVEL ${data.newLevel}` });
             }
-            updateXp(data.totalXp, data.newLevel);
+            addXp(data.xpGained);
           }
         }
       } catch { /* silent */ }
