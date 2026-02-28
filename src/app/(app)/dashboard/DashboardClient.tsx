@@ -57,7 +57,7 @@ export default function DashboardClient({
   divisionMembers: DivisionMember[];
 }) {
   const storeUser = useUserStore((s) => s.user);
-  const updateXp = useUserStore((s) => s.updateXp);
+  const addXp = useUserStore((s) => s.addXp);
   const addToast = useNotificationStore((s) => s.addToast);
   const [dailyClaimed, setDailyClaimed] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifs);
