@@ -227,7 +227,7 @@ export default async function MapPage() {
                 </div>
               </div>
             );
-          }))}
+          })}
         </div>
       </div>
     </div>
