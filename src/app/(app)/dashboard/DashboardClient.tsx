@@ -114,7 +114,7 @@ export default function DashboardClient({
     const data = await res.json();
     if (data.success) {
       setDailyClaimed(true);
-      addXp(data.user.xp, data.user.level);
+      addXp(data.xpGained);
       addToast({
         type: "login",
         title: "デイリーログインボーナス",
