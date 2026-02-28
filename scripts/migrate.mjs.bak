@@ -1,0 +1,238 @@
+/**
+ * scripts/migrate.mjs
+ * Turso/libSQL 用テーブル作成マイグレーション
+ *
+ * 実行: node --env-file=.env.local scripts/migrate.mjs
+ */
+
+import { createClient } from '@libsql/client';
+
+const db = createClient({
+  url:       process.env.TURSO_DATABASE_URL,
+  authToken: process.env.TURSO_AUTH_TOKEN,
+});
+
+const TABLES = [
+  // ── ユーザー ─────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS users (
+    id                     TEXT    PRIMARY KEY,
+    username               TEXT    NOT NULL UNIQUE,
+    email                  TEXT    NOT NULL UNIQUE,
+    password_hash          TEXT    NOT NULL,
+    display_name           TEXT,
+    avatar_url             TEXT,
+    role                   TEXT    NOT NULL DEFAULT 'player',
+    status                 TEXT    NOT NULL DEFAULT 'active',
+    clearance_level        INTEGER NOT NULL DEFAULT 0,
+    division_id            TEXT    REFERENCES divisions(id),
+    anomaly_score          REAL    NOT NULL DEFAULT 0,
+    observer_load          REAL    NOT NULL DEFAULT 0,
+    xp_total               INTEGER NOT NULL DEFAULT 0,
+    login_count            INTEGER NOT NULL DEFAULT 0,
+    consecutive_login_days INTEGER NOT NULL DEFAULT 0,
+    last_login_at          TEXT,
+    last_daily_bonus_at    TEXT,
+    email_verified         INTEGER NOT NULL DEFAULT 0,
+    created_at             TEXT    NOT NULL DEFAULT (datetime('now')),
+    deleted_at             TEXT
+  )`,
+
+  // ── 部門 ─────────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS divisions (
+    id          TEXT    PRIMARY KEY,
+    slug        TEXT    NOT NULL UNIQUE,
+    name        TEXT    NOT NULL,
+    description TEXT,
+    is_active   INTEGER NOT NULL DEFAULT 1,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+  )`,
+
+  // ── 進捗フラグ ────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS progress_flags (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    TEXT    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    flag_key   TEXT    NOT NULL,
+    flag_value TEXT    NOT NULL DEFAULT 'true',
+    set_at     TEXT    NOT NULL DEFAULT (datetime('now')),
+    expires_at TEXT,
+    UNIQUE (user_id, flag_key)
+  )`,
+
+  // ── ストーリー変数 ─────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS story_variables (
+    id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id   TEXT    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    var_key   TEXT    NOT NULL,
+    var_value REAL    NOT NULL DEFAULT 0,
+    UNIQUE (user_id, var_key)
+  )`,
+
+  // ── 発火済みイベント ───────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS fired_events (
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id  TEXT    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    event_id TEXT    NOT NULL,
+    fired_at TEXT    NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (user_id, event_id)
+  )`,
+
+  // ── 通知 ─────────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS notifications (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    TEXT    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type       TEXT    NOT NULL DEFAULT 'info',
+    title      TEXT,
+    body       TEXT,
+    is_read    INTEGER NOT NULL DEFAULT 0,
+    read_at    TEXT,
+    expires_at TEXT,
+    created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+  )`,
+
+  // ── ブックマーク ──────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS bookmarks (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    TEXT    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    page_path  TEXT    NOT NULL,
+    label      TEXT,
+    created_at TEXT    NOT NULL DEFAULT (datetime('now')),
+    UNIQUE (user_id, page_path)
+  )`,
+
+  // ── 投稿 ─────────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS posts (
+    id                  TEXT    PRIMARY KEY,
+    user_id             TEXT    NOT NULL REFERENCES users(id),
+    division_id         TEXT    REFERENCES divisions(id),
+    title               TEXT,
+    body                TEXT    NOT NULL,
+    status              TEXT    NOT NULL DEFAULT 'published',
+    classification      TEXT    NOT NULL DEFAULT 'UNCLASSIFIED',
+    required_clearance  INTEGER NOT NULL DEFAULT 0,
+    is_lore             INTEGER NOT NULL DEFAULT 0,
+    slug                TEXT,
+    like_count          INTEGER NOT NULL DEFAULT 0,
+    comment_count       INTEGER NOT NULL DEFAULT 0,
+    view_count          INTEGER NOT NULL DEFAULT 0,
+    metadata            TEXT,
+    created_at          TEXT    NOT NULL DEFAULT (datetime('now')),
+    updated_at          TEXT    NOT NULL DEFAULT (datetime('now')),
+    deleted_at          TEXT
+  )`,
+
+  // ── いいね ────────────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS likes (
+    id      INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    post_id TEXT    NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    UNIQUE (user_id, post_id)
+  )`,
+
+  // ── アクセスログ ──────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS access_logs (
+    id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id     TEXT,
+    method      TEXT    NOT NULL DEFAULT 'GET',
+    path        TEXT    NOT NULL,
+    status_code INTEGER NOT NULL DEFAULT 200,
+    ip_address  TEXT,
+    created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
+  )`,
+
+  // ── チャットログ ──────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS chat_logs (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    chat_id      TEXT    NOT NULL,
+    user_id      TEXT    NOT NULL,
+    username     TEXT    NOT NULL,
+    message      TEXT    NOT NULL,
+    message_type TEXT    NOT NULL DEFAULT 'text',
+    created_at   TEXT    NOT NULL DEFAULT (datetime('now'))
+  )`,
+
+  // ── プレイヤー行動ログ ─────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS player_action_logs (
+    id            INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id       TEXT,
+    action_type   TEXT    NOT NULL,
+    action_target TEXT,
+    metadata      TEXT,
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+  )`,
+
+  // ── 部門移動申請 ──────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS division_transfer_requests (
+    id               TEXT    PRIMARY KEY,
+    user_id          TEXT    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    from_division_id TEXT    REFERENCES divisions(id),
+    to_division_id   TEXT    NOT NULL REFERENCES divisions(id),
+    reason           TEXT    NOT NULL DEFAULT '',
+    status           TEXT    NOT NULL DEFAULT 'pending',
+    reviewed_by      TEXT    REFERENCES users(id),
+    reviewed_at      TEXT,
+    reject_reason    TEXT,
+    created_at       TEXT    NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_division_transfer_status ON division_transfer_requests (status, created_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_division_transfer_user   ON division_transfer_requests (user_id)`,
+
+  // ── 本人確認トークン ──────────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS identity_verify_tokens (
+    token      TEXT    PRIMARY KEY,
+    user_id    TEXT    NOT NULL,
+    expires_at TEXT    NOT NULL,
+    used       INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+  )`,
+
+  // ── パスワード変更申請 ─────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS password_change_requests (
+    id            TEXT    PRIMARY KEY,
+    user_id       TEXT    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    reason        TEXT    NOT NULL DEFAULT '',
+    status        TEXT    NOT NULL DEFAULT 'pending',
+    reviewed_by   TEXT    REFERENCES users(id),
+    reviewed_at   TEXT,
+    reject_reason TEXT,
+    created_at    TEXT    NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_pw_requests_status  ON password_change_requests (status, created_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_pw_requests_user    ON password_change_requests (user_id)`,
+
+  // ── 本人確認トークン ──────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS identity_verify_tokens (
+    token      TEXT    PRIMARY KEY,
+    user_id    TEXT    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at TEXT    NOT NULL,
+    used       INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_identity_tokens_user ON identity_verify_tokens (user_id, expires_at)`,
+
+  // ── インデックス ──────────────────────────────────────────────
+  `CREATE INDEX IF NOT EXISTS idx_progress_flags_user    ON progress_flags (user_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_story_variables_user   ON story_variables (user_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_fired_events_user      ON fired_events (user_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_notifications_user     ON notifications (user_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_bookmarks_user         ON bookmarks (user_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_posts_status           ON posts (status, required_clearance)`,
+  `CREATE INDEX IF NOT EXISTS idx_chat_logs_chat_id      ON chat_logs (chat_id, created_at)`,
+  `CREATE INDEX IF NOT EXISTS idx_access_logs_created_at ON access_logs (created_at)`,
+];
+
+async function migrate() {
+  console.log('マイグレーション開始...');
+  for (const sql of TABLES) {
+    await db.execute(sql);
+    const name = sql.match(/TABLE IF NOT EXISTS (\w+)/)?.[1]
+               || sql.match(/INDEX IF NOT EXISTS (\w+)/)?.[1]
+               || '(statement)';
+    console.log(`  ✓ ${name}`);
+  }
+  console.log('マイグレーション完了！');
+}
+
+migrate().catch(err => {
+  console.error('マイグレーション失敗:', err.message);
+  process.exit(1);
+});

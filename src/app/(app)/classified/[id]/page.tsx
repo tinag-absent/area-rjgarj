@@ -1,0 +1,185 @@
+import { headers } from "next/headers";
+import LockedContent from "@/components/ui/LockedContent";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import type { Metadata } from "next";
+
+const DOCUMENTS = [
+  {
+    id: "doc-alpha",
+    clearance: "ALPHA",
+    color: "#ef4444",
+    title: "設立令第零条 — 公開されなかった条文",
+    date: "1987-03-07",
+    body: `第零条（非公開）
+
+海蝕機関の真の設立目的は、海蝕現象の「収束」ではない。
+
+正式名称を「次元存続局」とする本機関の本来任務は、
+すでに不可逆的に進行している次元崩壊を、
+一般市民に知覚させることなく延命させることにある。
+
+「収束」は比喩である。
+私たちがモジュールで行っているのは、
+穴をふさぐことではなく、穴を見えなくすることだ。
+
+次元境界の完全崩壊まで、現行ペースで残り——
+　　本文書作成時点での試算：62年から91年
+
+本条文は最高幹部機関員のみが知る。
+知った者は、引き返せない。`,
+  },
+  {
+    id: "doc-beta",
+    clearance: "BETA",
+    color: "#f59e0b",
+    title: "失踪機関員リスト — 非公式記録",
+    date: "継続更新中",
+    body: `以下は「任務中の事故」として処理されたが、
+実際には次元境界に「取り込まれた」機関員の記録である。
+
+K-001-077　西堂　隆矢　— 2019年11月消失。最後の通信：
+  「境界の向こうに誰かいる。彼らは待っている。」
+
+K-002-034　橘　茜　— 2021年03月消失。
+  消失直前に提出したレポートは機密指定済み。
+  本文は最高幹部のみ閲覧可。
+
+K-003-159　名前不明　— 2022年08月消失。
+  ID登録のみで個人情報が一切存在しない。
+  採用担当者も採用した記憶がないと証言。
+
+K-004-???　未登録　— 消失日不明。
+  あなたは気づいているはずだ。
+  機関員データベースにあなたのIDで重複登録が存在する。
+  もう一人のあなたは、どこへ行ったのか。`,
+  },
+  {
+    id: "doc-gamma",
+    clearance: "GAMMA",
+    color: "#8b5cf6",
+    title: "観測者プロトコル — 存在の証明",
+    date: "作成日：不明",
+    body: `観測者は存在しない。
+
+これはプロトコルの名称ではなく、事実の記述である。
+
+「海蝕現象」と我々が呼んでいるものは、
+次元境界の外側から「観測」しようとする存在が、
+その観測行為によって生じる干渉パターンである。
+
+観測者が次元を観測することで、次元が崩壊する。
+そしてその観測者とは——
+
+本段落以降は、当文書を閲覧した機関員の
+異常スコアおよびオブザーバー負荷の数値によって
+表示内容が変動します。
+
+あなたの異常スコアが一定値を超えた時、
+残りの文章が開示されます。
+
+それまでは、知らないほうが安全です。`,
+  },
+  {
+    id: "doc-delta",
+    clearance: "DELTA",
+    color: "#00d4ff",
+    title: "収束完了後報告書 No.0001 — 再分類",
+    date: "1991-07-14",
+    body: `対象　　 : 次元インシデント　第一号
+場所　　 : 長崎県　五島列島沖
+GSI値　 : 最大測定値 9.2（計器限界）
+担当部門 : 収束部門（当時：調査第一課）
+
+収束の結果：「成功」と記録された。
+
+ただし、現場に派遣された機関員17名のうち
+帰還したのは3名である。
+
+帰還した3名の証言（抜粋）：
+
+「境界を閉じた瞬間、消えた14名は
+ こちらを見て、笑っていました」
+
+「彼らは助けを求めていたのではない。
+ 彼らは私たちを招いていたのです」
+
+「私だけが気づいています。
+ あの時帰還したのは私ではありません。
+ 本物の私は、あちら側に残っています」
+
+本報告書は「収束の代償」という概念の
+最初期記録として保存する。`,
+  },
+];
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
+  const { id } = await params;
+  const doc = DOCUMENTS.find(d => d.id === id);
+  return { title: doc ? `${doc.title} - 機密情報` : "機密情報" };
+}
+
+export default async function ClassifiedDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const h = await headers();
+  const level = parseInt(h.get("x-user-level") ?? "0");
+  if (level < 5) return <LockedContent requiredLevel={5} currentLevel={level} pageName="機密情報" />;
+
+  const doc = DOCUMENTS.find(d => d.id === id);
+  if (!doc) notFound();
+
+  return (
+    <div className="animate-fadeIn" style={{ padding: "3rem 1.5rem", maxWidth: "860px", margin: "0 auto" }}>
+      {/* 戻るリンク */}
+      <Link href="/classified" style={{
+        display: "inline-flex", alignItems: "center", gap: "0.4rem",
+        color: "rgba(255,255,255,0.4)", textDecoration: "none",
+        fontFamily: "'JetBrains Mono', monospace", fontSize: "0.72rem",
+        marginBottom: "2rem", transition: "color 0.2s",
+      }}>
+        <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        機密情報一覧に戻る
+      </Link>
+
+      {/* Document card */}
+      <div className="card" style={{ borderLeft: `3px solid ${doc.color}80`, backgroundColor: `${doc.color}06` }}>
+        <div style={{ padding: "1.75rem" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginBottom: "0.75rem", flexWrap: "wrap" }}>
+            <span className="font-mono" style={{
+              fontSize: "0.65rem", padding: "3px 10px",
+              backgroundColor: `${doc.color}20`, color: doc.color,
+              border: `1px solid ${doc.color}40`,
+            }}>
+              CLASSIFIED — {doc.clearance}
+            </span>
+            <span className="font-mono" style={{ fontSize: "0.65rem", color: "rgba(255,255,255,0.3)" }}>
+              {doc.date}
+            </span>
+          </div>
+          <h1 style={{
+            fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700,
+            fontSize: "1.5rem", color: "white", marginBottom: "1.5rem",
+          }}>
+            {doc.title}
+          </h1>
+
+          <div style={{ backgroundColor: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.06)", padding: "1.5rem" }}>
+            <pre className="font-mono" style={{
+              fontSize: "0.8rem", color: "rgba(255,255,255,0.85)",
+              lineHeight: 2, whiteSpace: "pre-wrap", margin: 0,
+              fontFamily: "'JetBrains Mono', 'Courier New', monospace",
+            }}>
+              {doc.body}
+            </pre>
+          </div>
+        </div>
+      </div>
+
+      <div className="font-mono" style={{ marginTop: "1.5rem", padding: "0.875rem 1rem", backgroundColor: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.15)", fontSize: "0.65rem", color: "rgba(239,68,68,0.4)", lineHeight: 1.8 }}>
+        閲覧日時：{new Date().toLocaleString("ja-JP")} | 閲覧記録：保存済
+      </div>
+    </div>
+  );
+}
