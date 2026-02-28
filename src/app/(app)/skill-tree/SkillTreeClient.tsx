@@ -119,7 +119,7 @@ export default function SkillTreeClient() {
         });
         if (xpRes.ok) {
           const xpData = await xpRes.json();
-          updateXp(xpData.totalXp);
+          addXp(xpData.totalXp);
         }
       }
 
