@@ -1,0 +1,24 @@
+{
+  "prefecture": "大分県",
+  "prefectureCode": "44",
+  "municipalities": {
+    "44201": { "name": "大分市",     "centLon": 131.8513, "centLat": 33.2380 },
+    "44202": { "name": "別府市",     "centLon": 131.4692, "centLat": 33.2933 },
+    "44203": { "name": "中津市",     "centLon": 131.1612, "centLat": 33.4845 },
+    "44204": { "name": "日田市",     "centLon": 130.9569, "centLat": 33.2481 },
+    "44205": { "name": "佐伯市",     "centLon": 131.9495, "centLat": 32.8975 },
+    "44206": { "name": "臼杵市",     "centLon": 131.8112, "centLat": 33.1203 },
+    "44207": { "name": "津久見市",   "centLon": 131.9152, "centLat": 33.0916 },
+    "44208": { "name": "竹田市",     "centLon": 131.3474, "centLat": 33.0146 },
+    "44209": { "name": "豊後高田市", "centLon": 131.5059, "centLat": 33.6192 },
+    "44210": { "name": "杵築市",     "centLon": 131.5628, "centLat": 33.4446 },
+    "44211": { "name": "宇佐市",     "centLon": 131.3373, "centLat": 33.4920 },
+    "44212": { "name": "豊後大野市", "centLon": 131.5081, "centLat": 32.9893 },
+    "44213": { "name": "由布市",     "centLon": 131.4009, "centLat": 33.2052 },
+    "44214": { "name": "国東市",     "centLon": 131.6602, "centLat": 33.5847 },
+    "44322": { "name": "姫島村",     "centLon": 131.6629, "centLat": 33.7284 },
+    "44341": { "name": "日出町",     "centLon": 131.5445, "centLat": 33.3654 },
+    "44461": { "name": "九重町",     "centLon": 131.2244, "centLat": 33.2060 },
+    "44462": { "name": "玖珠町",     "centLon": 131.1646, "centLat": 33.3053 }
+  }
+}
