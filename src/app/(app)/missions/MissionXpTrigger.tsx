@@ -37,7 +37,7 @@ export default function MissionXpTrigger({ completedCount }: { completedCount: n
         }
       } catch { /* silent */ }
     })();
-  }, [completedCount, updateXp, addToast]);
+  }, [completedCount, addXp, addToast]);
 
   return null;
 }
