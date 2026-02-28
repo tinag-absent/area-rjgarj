@@ -1,0 +1,237 @@
+import { headers } from "next/headers";
+import LockedContent from "@/components/ui/LockedContent";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "コーデックス - 海蝕機関" };
+
+interface CodexEntry {
+  id: string;
+  title: string;
+  icon: string;
+  level: number;
+  accent: string;
+  summary: string;
+  content: string;
+}
+
+const CODEX_ENTRIES: CodexEntry[] = [
+  {
+    id: "kaishoku",
+    title: "海蝕とは何か",
+    icon: "🌊",
+    level: 0,
+    accent: "var(--primary)",
+    summary: "階宙次元が物理世界を「侵食」する現象の総称。",
+    content: `海蝕（かいしょく）とは、私たちの世界（一次元素材次元）に隣接する「階宙次元」と呼ばれる並行次元空間が、物理的現実に干渉・侵食する現象の総称です。
+
+海蝕現象は次元境界の「薄さ」に起因します。通常、両次元の境界は安定していますが、様々な要因により境界が弱体化すると、次元間の相互干渉が生じます。具体的には、次元境界の薄化（自然発生・人為的）、階宙実体の侵入と物理世界への影響、物理法則の局所的な破綻（GSI値上昇）、人間の認識・記憶・感覚への干渉が発生します。
+
+海が岩を削るように、階宙次元は静かに、しかし確実に物理現実を浸食していきます。機関設立当初の研究者が「岩に打ち寄せる波のような干渉」と表現したことに由来します。`,
+  },
+  {
+    id: "kaichu",
+    title: "階宙次元",
+    icon: "∞",
+    level: 1,
+    accent: "#8b5cf6",
+    summary: "物理世界に隣接する並行次元空間。無数の「層」から構成される。",
+    content: `階宙次元は、私たちが生きる物理空間に重なって存在する、別の法則に基づいた次元空間です。単一の空間ではなく、「無数の層から成る重層的な次元群」と理解されています。
+
+物理法則の違い：時間が一方向に流れない（逆行・分岐が存在する）、質量・エネルギー保存則が適用されない領域がある、意識・記憶・感情が物質的実体を持つ、論理的概念が「物体」として存在する。
+
+この次元には多様な生命体・知性体・現象体が存在します。これらを機関では「海蝕実体」と総称します。多くは無害ですが、物理世界と接触することで予期しない影響を与えます。
+
+次元境界には「薄い場所」と「厚い場所」があります。薄い場所では実体が侵入しやすく、海蝕現象が頻発します。日本列島は地政学的・地質学的要因から特に境界が薄い地域とされています。`,
+  },
+  {
+    id: "gsi",
+    title: "GSI（世界安定指数）",
+    icon: "📊",
+    level: 0,
+    accent: "#ef4444",
+    summary: "物理世界の安定度を示す重要指標。現在: 3.2%。",
+    content: `GSIは「世界安定指数」と訳される、次元境界の安定度を示す主要指標です。機関の監視システムが算出するこの数値は、地球規模の次元安定度の「逆数」として機能します。
+
+数値の意味：0-5% = 安定領域（通常の海蝕活動レベル）、5-15% = 警戒領域（大規模事案の頻発に注意）、15-30% = 危機領域（次元境界の大規模崩壊リスク）、30%以上 = 崩壊域（取り返しのつかない影響の可能性）。
+
+各事案報告のGSI値は「局所GSI」（特定地点の安定度）を示します。機関トップページに表示される「3.2%」は現在の全球平均GSI値です。
+
+GSIの上昇要因：大規模な海蝕実体の活動、人為的な次元干渉実験、未知の自然的サイクル（11年周期説あり）、月の引力との相関（満月時に上昇傾向）。`,
+  },
+  {
+    id: "agency",
+    title: "機関の歴史",
+    icon: "🏛",
+    level: 1,
+    accent: "#f59e0b",
+    summary: "1968年設立。最初の海蝕事案から半世紀以上の記録。",
+    content: `【設立前史 1945-1967】第二次世界大戦後の混乱期、日本各地で「説明のつかない事案」が多発しました。当初は精神医学的・宗教的解釈がなされましたが、1960年代に入り、物理学・心理学・情報学の研究者らが科学的調査を開始します。
+
+【機関設立 1968年】政府の極秘認可のもと「特殊事案収束局」として発足。初代局長の命名により「海蝕機関」と通称されるようになります。設立当初の職員はわずか12名でした。
+
+【第1次大規模事案 1984年】大分市中心部を舞台にした「桜川事件」（機密指定）。機関史上初の「概念捕食者」との遭遇記録。この事案が現在の収容・収束プロトコルの原型を作りました。
+
+【現在 2026年】全国に5拠点、在籍機関員は約200名（公式記録）。年間処理事案数は約150件。GSI値は過去10年で平均1.8%上昇しており、増加傾向に対応するため体制の強化が続いています。`,
+  },
+  {
+    id: "classification",
+    title: "実体分類体系",
+    icon: "🗂",
+    level: 2,
+    accent: "#10b981",
+    summary: "SAFE / CAUTION / DANGER / CLASSIFIED の4分類。",
+    content: `機関は確認された全ての海蝕実体を4段階で分類します。この分類は対処方針の基礎となります。
+
+【SAFE（安全）】人間・物理環境への危害が認められない、または極めて低い実体。接触しても即座の影響はないが、継続的な観察は必要。漂流者、次元の錨などが該当。
+
+【CAUTION（注意）】条件次第で危害を与える可能性のある実体。物理的ダメージより認識・記憶・感覚への干渉が多い。適切な装備と手順で対処可能。波喰い、感覚置換体などが該当。
+
+【DANGER（危険）】積極的に人間や物理環境に危害を与える実体。専門的な収束プロトコルが必要。不適切な対処は機関員の重篤な被害につながる。概念捕食者、言葉喰らいなどが該当。
+
+【CLASSIFIED（機密）】危険性の評価が困難か、上位権限者のみが閲覧可能な情報を持つ実体。存在の公知は機関内でも制限される。確率の子などが該当。`,
+  },
+  {
+    id: "phenomenon",
+    title: "海蝕現象（詳細）",
+    icon: "🌀",
+    level: 0,
+    accent: "var(--primary)",
+    summary: "別次元からの浸食により物理法則・因果律が変質・消失する現象の総称。",
+    content: `「海蝕現象」とは、我々の存在する次元空間に対し、別次元――通称「階宙次元」からの浸食が発生し、物理法則や因果律が変質・消失する現象の総称。多くの場合、浸食された領域は「海」に似た視覚的特徴や性質を示すことから、機関内ではこの名称が定着しました。
+
+【階宙次元 Kaichu Dimension】我々の次元世界を包括して存在する異常次元。僅かな可能性を「拡大」して新たな世界を生み出すため、理論上は全ての可能性の世界が存在すると考えられています。
+
+【階底次元 Kaitei Dimension】階宙次元内での現在存在している次元のことを相対的に表現したもの。
+
+【残滓】海蝕現象の収束後に現場に残される、異質な物質やエネルギーの結晶。工作部門が「モジュール」の材料として使用する極めて重要な研究対象です。極めて不安定ですが、我々の唯一の対抗手段となります。`,
+  },
+  {
+    id: "entities",
+    title: "実体の種別",
+    icon: "👁",
+    level: 0,
+    accent: "#10b981",
+    summary: "海蝕実体・不根 (Fune) など、次元間を跨ぐ存在の分類。",
+    content: `【海蝕実体】海蝕現象が次元世界で実体化したもの。意思や概念など、通常は実体を持たないものも実体化します。機関内ではE番号で管理されます。
+
+【不根 (Fune)】特定の次元世界に定在せず、次元世界から次元世界へと渡り歩いているものたちの総称。多種多様な種族が入り混じっています。
+
+一部の不根は機関と友好的な関係を持ち、情報交換や物資取引を行うケースもあります。ただし全ての不根が友好的とは限りません。
+
+接触プロトコル：初期接触は外事部門が担当。意思疎通手段の確認（言語・概念共有の可否）。危険度評価後に対処方針を決定。友好的な実体は「E-登録」を行い記録管理。`,
+  },
+  {
+    id: "modules",
+    title: "モジュール体系",
+    icon: "⚙️",
+    level: 2,
+    accent: "#3b82f6",
+    summary: "工作部門が開発・整備する収束装備の総称。",
+    content: `機関の現場機関員が使用する特殊装備を「モジュール」と総称します。すべてのモジュールは工作部門が開発・製造・整備を担当し、コードによって管理されます。
+
+【命名規則】M-[番号]-[ギリシャ文字] という形式です。番号は機能カテゴリ（001-010: 空間系、011-020: 情報系等）を示し、ギリシャ文字は世代・改良型を示します。
+
+【使用資格制度】危険度の高いモジュールには使用資格が必要です。S/A/AA/AAAの4段階で、最上位のAAAは特定モジュールの専門訓練を完了した機関員にのみ付与されます。
+
+現場での原則：単独使用禁止（複数名でのチーム運用）、使用前後の機能確認必須、連続使用時間の制限遵守、事案報告書への使用記録記載義務。`,
+  },
+];
+
+const ACCENT_SOLID: Record<string, string> = {
+  "var(--primary)": "#00ffff",
+};
+function toSolid(accent: string) {
+  return ACCENT_SOLID[accent] ?? accent;
+}
+
+export default async function CodexPage() {
+  const h = await headers();
+  const lvl = parseInt(h.get("x-user-level") ?? "0");
+  if (lvl < 1) return <LockedContent requiredLevel={1} currentLevel={lvl} pageName="コーデックス" />;
+
+  return (
+    <div className="animate-fadeIn" style={{ padding: "3rem 1.5rem", maxWidth: "1200px", margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ marginBottom: "2rem" }}>
+        <div className="font-mono" style={{ fontSize: "0.75rem", color: "var(--primary)", letterSpacing: "0.15em", marginBottom: "0.5rem" }}>
+          WORLD CODEX // LEVEL 1 CLEARANCE
+        </div>
+        <h1 style={{ fontSize: "2rem", fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, color: "white", marginBottom: "0.5rem" }}>
+          コーデックス
+        </h1>
+        <p className="font-mono" style={{ fontSize: "0.875rem", color: "var(--muted-foreground)" }}>
+          海蝕機関の世界設定・用語辞典
+        </p>
+      </div>
+
+      {/* Grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: "1rem" }}>
+        {CODEX_ENTRIES.map((entry) => {
+          const locked = entry.level > lvl;
+          const accent = toSolid(entry.accent);
+          return (
+            <div
+              key={entry.id}
+              className="card"
+              style={{
+                borderColor: locked ? "rgba(255,255,255,0.05)" : `${accent}30`,
+                opacity: locked ? 0.5 : 1,
+                cursor: locked ? "not-allowed" : "default",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              <div style={{ padding: "1.25rem" }}>
+                {/* Icon + level badge */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "0.875rem" }}>
+                  <span style={{ fontSize: "1.75rem", lineHeight: 1 }}>{entry.icon}</span>
+                  <span className="font-mono" style={{
+                    fontSize: "0.62rem", padding: "0.15rem 0.45rem",
+                    backgroundColor: locked ? "rgba(255,255,255,0.05)" : `${accent}18`,
+                    border: `1px solid ${locked ? "rgba(255,255,255,0.1)" : `${accent}40`}`,
+                    color: locked ? "rgba(255,255,255,0.3)" : accent,
+                  }}>
+                    {locked ? `🔒 LV${entry.level}` : `LV${entry.level}`}
+                  </span>
+                </div>
+
+                {/* Title */}
+                <div style={{ fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, fontSize: "1.05rem", color: locked ? "rgba(255,255,255,0.3)" : "white", marginBottom: "0.4rem" }}>
+                  {entry.title}
+                </div>
+
+                {/* Summary */}
+                <div className="font-mono" style={{ fontSize: "0.75rem", color: locked ? "rgba(255,255,255,0.2)" : "var(--muted-foreground)", lineHeight: 1.5, marginBottom: "1rem" }}>
+                  {locked ? "[アクセス拒否 — レベルアップで解放されます]" : entry.summary}
+                </div>
+
+                {/* Content */}
+                {!locked && (
+                  <div style={{
+                    borderTop: `1px solid ${accent}22`,
+                    paddingTop: "0.875rem",
+                    fontSize: "0.78rem",
+                    color: "rgba(255,255,255,0.65)",
+                    lineHeight: 1.75,
+                    whiteSpace: "pre-wrap",
+                  }}>
+                    {entry.content.split("\n\n").map((para, i) => (
+                      <p key={i} style={{ margin: "0 0 0.75rem", color: para.startsWith("【") ? "rgba(255,255,255,0.85)" : "rgba(255,255,255,0.65)" }}>
+                        {para}
+                      </p>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Bottom accent */}
+              {!locked && (
+                <div style={{ height: "2px", background: `linear-gradient(90deg, ${accent}60, transparent)` }} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
