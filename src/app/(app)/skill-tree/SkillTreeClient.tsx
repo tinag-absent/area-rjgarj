@@ -56,7 +56,7 @@ const TRACKS: Track[] = [
 const FLAG_PREFIX = "skill_unlocked:";
 
 export default function SkillTreeClient() {
-  const { user, updateXp } = useUserStore();
+  const { user, addXp } = useUserStore();
   const addToast = useNotificationStore(s => s.addToast);
   const [unlockedIds, setUnlockedIds] = useState<Set<string>>(new Set());
   const [loading, setLoading]         = useState(true);
