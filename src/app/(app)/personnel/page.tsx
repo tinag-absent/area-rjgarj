@@ -26,7 +26,7 @@ const PSYCH_STYLES: Record<string, { bg: string; color: string }> = {
 
 const DIV_COLORS: Record<string, string> = {
   "収束部門": "#ef4444", "工作部門": "#f97316", "外事部門": "#a855f7",
-  "港湾部門": "#3b82f6", "支援部門": "#10b981", "外事部門": "#6b7280",
+  "港湾部門": "#3b82f6", "支援部門": "#10b981",
 };
 
 function getDivColor(division: string): string {
