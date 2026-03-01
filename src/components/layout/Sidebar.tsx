@@ -218,7 +218,7 @@ export default function Sidebar() {
       {/* Footer */}
       <div style={{ padding: "1rem 0.75rem", borderTop: "1px solid var(--sidebar-border)", flexShrink: 0 }}>
         {user?.role !== "player" && (
-          <Link href="/admin" style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.625rem 0.75rem", marginBottom: "0.5rem", borderRadius: "0.375rem", color: user?.role === "super_admin" ? "var(--sidebar-primary)" : "var(--muted-foreground)", fontSize: "0.875rem", transition: "all 0.2s" }}>
+          <Link href="/admin" style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.625rem 0.75rem", marginBottom: "0.5rem", borderRadius: "0.375rem", color: ["admin","super_admin"].includes(user?.role ?? "") ? "var(--sidebar-primary)" : "var(--muted-foreground)", fontSize: "0.875rem", transition: "all 0.2s" }}>
             <span>⚙</span><span>管理画面</span>
             {user?.role === "super_admin" && (
               <span style={{ fontSize: "0.5rem", fontFamily: "monospace", backgroundColor: "rgba(255,200,0,0.1)", border: "1px solid rgba(255,200,0,0.3)", color: "hsl(38,90%,55%)", padding: "0.1rem 0.3rem", borderRadius: "2px", letterSpacing: "0.05em" }}>SA</span>
