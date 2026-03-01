@@ -62,7 +62,8 @@ export default function LoginForm() {
   const setUser = useUserStore((s) => s.setUser);
   const searchParams = useSearchParams();
   const sessionExpired = searchParams.get("expired") === "1";
-  const [tab, setTab] = useState<Tab>("login");
+  const verifyError = searchParams.get("verify_error");
+  const [tab, setTab] = useState<Tab>(searchParams.get("tab") === "register" ? "register" : "login");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -78,6 +79,8 @@ export default function LoginForm() {
   const [regPw, setRegPw] = useState("");
   const [showRegPw, setShowRegPw] = useState(false);
   const [regDiv, setRegDiv] = useState("convergence");
+  const [regEmail, setRegEmail] = useState("");
+  const [regDone, setRegDone] = useState(false); // 認証メール送信完了フラグ
 
   // IDの重複チェック状態
   type IdStatus = "idle" | "checking" | "available" | "taken" | "invalid";
@@ -157,23 +160,12 @@ export default function LoginForm() {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentId: regId, name: regName, password: regPw, division: regDiv }),
+        body: JSON.stringify({ agentId: regId, name: regName, password: regPw, division: regDiv, email: regEmail }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "登録に失敗しました");
-      const loginRes = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ agentId: regId, password: regPw }),
-      });
-      const loginData = await loginRes.json();
-      if (loginRes.ok) {
-        setUser(loginData.user as User);
-        router.replace("/dashboard");
-      } else {
-        setTab("login");
-        setLoginId(regId);
-      }
+      // 認証メール送信完了画面を表示
+      setRegDone(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "エラーが発生しました");
     } finally {
@@ -287,6 +279,19 @@ export default function LoginForm() {
           </div>
         )}
 
+        {verifyError && (
+          <div style={{
+            padding: "0.75rem 1rem",
+            backgroundColor: "rgba(239,68,68,0.1)",
+            border: "1px solid rgba(239,68,68,0.3)",
+            borderRadius: "0.375rem", marginBottom: "1rem",
+            color: "var(--destructive)", fontSize: "0.8rem",
+            fontFamily: "'JetBrains Mono', monospace",
+          }}>
+            ⚠ {verifyError}
+          </div>
+        )}
+
         {error && (
           <div style={{
             padding: "0.75rem 1rem",
@@ -373,6 +378,28 @@ export default function LoginForm() {
 
         {/* ── 新規登録フォーム ── */}
         {tab === "register" && (
+          <>
+          {/* 認証メール送信完了画面 */}
+          {regDone ? (
+            <div style={{ textAlign: "center", padding: "1rem 0" }}>
+              <div style={{ fontSize: "2.5rem", marginBottom: "1rem" }}>📧</div>
+              <h3 style={{ fontFamily: "'Space Grotesk', sans-serif", color: "white", fontSize: "1.1rem", marginBottom: "0.75rem" }}>
+                認証メールを送信しました
+              </h3>
+              <p style={{ color: "var(--muted-foreground)", fontSize: "0.8rem", fontFamily: "monospace", lineHeight: 1.7, marginBottom: "1.5rem" }}>
+                <strong style={{ color: "cyan" }}>{regEmail}</strong> に送信した<br />
+                認証リンクをクリックして登録を完了してください。<br />
+                <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.7rem" }}>※ リンクの有効期限は24時間です</span>
+              </p>
+              <button
+                onClick={() => { setTab("login"); setRegDone(false); setLoginId(regId); }}
+                className="btn-primary"
+                style={{ width: "100%" }}
+              >
+                ログイン画面へ
+              </button>
+            </div>
+          ) : (
           <form onSubmit={handleRegister} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {/* 機関員ID */}
             <div>
@@ -446,6 +473,21 @@ export default function LoginForm() {
               />
             </div>
 
+            {/* メールアドレス */}
+            <div>
+              <label style={labelStyle}>メールアドレス</label>
+              <input
+                type="email"
+                value={regEmail}
+                onChange={(e) => setRegEmail(e.target.value)}
+                placeholder="example@email.com"
+                required
+                autoComplete="email"
+                style={inputStyle}
+              />
+              <p style={hintStyle}>認証リンクを送信します。メールボックスをご確認ください。</p>
+            </div>
+
             {/* パスキー + 強度インジケーター */}
             <div>
               <label style={labelStyle}>パスキー</label>
@@ -504,6 +546,8 @@ export default function LoginForm() {
               {loading ? "登録中..." : "登録して参加"}
             </button>
           </form>
+          )}
+          </>
         )}
       </div>
     </div>

@@ -185,6 +185,18 @@ const TABLES = [
   `CREATE INDEX IF NOT EXISTS idx_posts_status           ON posts (status, required_clearance)`,
   `CREATE INDEX IF NOT EXISTS idx_chat_logs_chat_id      ON chat_logs (chat_id, created_at)`,
   `CREATE INDEX IF NOT EXISTS idx_access_logs_created_at ON access_logs (created_at)`,
+
+  // ── メール認証トークン ─────────────────────────────────────────
+  `CREATE TABLE IF NOT EXISTS email_verification_tokens (
+    id         TEXT    PRIMARY KEY,
+    user_id    TEXT    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token      TEXT    NOT NULL UNIQUE,
+    expires_at TEXT    NOT NULL,
+    used_at    TEXT,
+    created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_email_verify_token   ON email_verification_tokens (token)`,
+  `CREATE INDEX IF NOT EXISTS idx_email_verify_user_id ON email_verification_tokens (user_id)`,
 ];
 
 async function migrate() {
