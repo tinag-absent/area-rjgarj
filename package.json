@@ -1,0 +1,38 @@
+{
+  "name": "kaishoku-next",
+  "version": "3.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "typecheck": "tsc --noEmit",
+    "migrate": "node --env-file=.env.local scripts/migrate.mjs",
+    "seed": "node --env-file=.env.local scripts/seed.mjs"
+  },
+  "dependencies": {
+    "next": "16.1.6",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "@libsql/client": "^0.17.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "zustand": "^5.0.0",
+    "swr": "^2.3.0",
+    "@vercel/speed-insights": "^1.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^22.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.0",
+    "eslint": "^9.0.0",
+    "eslint-config-next": "16.1.6",
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.4.0",
+    "postcss": "^8.4.0"
+  }
+}

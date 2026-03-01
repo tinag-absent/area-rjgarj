@@ -1,0 +1,125 @@
+import { headers } from "next/headers";
+import { getDb, query } from "@/lib/db";
+import LockedContent from "@/components/ui/LockedContent";
+import Link from "next/link";
+
+const DIV_META: Record<string, { color: string; en: string; description: string; specializations: string[] }> = {
+  convergence: { color: "#ef4444", en: "Convergence Division",   description: "海蝕現象の前線に立つ部門。モジュールと呼ばれる収束装置を携行し、現場での即応処置を行う。",              specializations: ["次元収束", "実体無力化", "緊急対応"] },
+  engineering: { color: "#f97316", en: "Engineering Division",   description: "回収された海蝕実体や残滓を検証し、その特性をモジュールへ転用。部室・消耗品・小物類の製作も兼任する。",  specializations: ["モジュール開発", "技術革新", "装備保守"] },
+  foreign:     { color: "#a855f7", en: "Foreign Affairs",        description: "行政・報道機関・階底次元住民との折衝やメディア操作を行う。スカウトや経理業務を担当することもある。",      specializations: ["外交交渉", "情報工作", "記憶操作"] },
+  port:        { color: "#3b82f6", en: "Port Division",          description: "境界の入り口となる土地や施設を24時間監視し、未認可の不根（ふね）や海蝕実体の侵入を阻止する。",           specializations: ["ゲート管理", "次元航行", "座標固定"] },
+  support:     { color: "#10b981", en: "Support Division",       description: "現地オペレーションの調整やデータ解析、海蝕員の帰還後ケアを担当。状況に応じて現場への同行支援も実施する。", specializations: ["医療支援", "補給管理", "通信維持"] },
+};
+
+export default async function DivisionDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const h = await headers();
+  const lvl = parseInt(h.get("x-user-level") ?? "0");
+  const myDivision = h.get("x-user-division") ?? "";
+
+  if (lvl < 1) return <LockedContent requiredLevel={1} currentLevel={lvl} pageName="部門詳細" />;
+
+  const meta = DIV_META[slug];
+  if (!meta) return <div style={{ padding: "3rem", color: "white" }}>部門が見つかりません</div>;
+
+  const db = getDb();
+
+  const [divRow, members, recentPosts] = await Promise.all([
+    query<{ id: string; name: string; slug: string }>(db,
+      `SELECT id, name, slug FROM divisions WHERE slug = ? LIMIT 1`, [slug]
+    ),
+    query<{ username: string; display_name: string; clearance_level: number }>(db,
+      `SELECT u.username, u.display_name, u.clearance_level
+       FROM users u JOIN divisions d ON d.id = u.division_id
+       WHERE d.slug = ? AND u.status = 'active' AND u.deleted_at IS NULL
+       ORDER BY u.clearance_level DESC, u.username ASC LIMIT 20`, [slug]
+    ),
+    query<{ id: string; title: string; body: string; created_at: string; author_name: string }>(db,
+      `SELECT p.id, p.title, p.body, p.created_at, u.display_name AS author_name
+       FROM posts p JOIN users u ON u.id = p.user_id
+       JOIN divisions d ON d.id = p.division_id
+       WHERE d.slug = ? AND p.status = 'published' AND p.deleted_at IS NULL
+       ORDER BY p.created_at DESC LIMIT 5`, [slug]
+    ),
+  ]);
+
+  const divName = divRow[0]?.name ?? slug;
+
+  return (
+    <div className="animate-fadeIn" style={{ padding: "3rem 1.5rem", maxWidth: "1000px", margin: "0 auto" }}>
+      <div style={{ marginBottom: "0.75rem" }}>
+        <Link href="/divisions" className="font-mono" style={{ fontSize: "0.72rem", color: "var(--muted-foreground)", textDecoration: "none" }}>
+          ← 組織図に戻る
+        </Link>
+      </div>
+
+      <div style={{ borderLeft: `4px solid ${meta.color}`, paddingLeft: "1rem", marginBottom: "2rem" }}>
+        <div className="font-mono" style={{ fontSize: "0.72rem", color: meta.color, letterSpacing: "0.15em", marginBottom: "0.4rem" }}>{meta.en.toUpperCase()}</div>
+        <h1 style={{ fontSize: "2rem", fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, color: "white" }}>{divName}</h1>
+        <p style={{ fontSize: "0.875rem", color: "var(--muted-foreground)", marginTop: "0.5rem", lineHeight: 1.75 }}>{meta.description}</p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginTop: "0.75rem" }}>
+          {meta.specializations.map(s => (
+            <span key={s} className="font-mono" style={{ fontSize: "0.65rem", padding: "0.15rem 0.5rem", backgroundColor: `${meta.color}10`, border: `1px solid ${meta.color}30`, color: meta.color }}>{s}</span>
+          ))}
+        </div>
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.5rem" }}>
+        {/* Members */}
+        <div className="card">
+          <div className="card-header">
+            <div className="card-title" style={{ fontSize: "0.875rem" }}>在籍メンバー ({members.length})</div>
+          </div>
+          <div className="card-content">
+            {members.length === 0 ? (
+              <div className="font-mono" style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>在籍メンバーなし</div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                {members.map(m => (
+                  <div key={m.username} style={{ display: "flex", alignItems: "center", gap: "0.75rem", padding: "0.35rem 0.5rem", backgroundColor: "rgba(255,255,255,0.02)", borderRadius: "0.25rem" }}>
+                    <div style={{ width: "6px", height: "6px", borderRadius: "50%", flexShrink: 0, backgroundColor: ["#445060","#4fc3f7","#00e676","#ffd740","#ff9800","#ff5252"][m.clearance_level] || "#445060" }} />
+                    <span className="font-mono" style={{ fontSize: "0.72rem", color: "white", flex: 1 }}>{m.username}</span>
+                    {m.display_name && <span style={{ fontSize: "0.72rem", color: "var(--muted-foreground)" }}>{m.display_name}</span>}
+                    <span className="font-mono" style={{ fontSize: "0.6rem", color: "var(--muted-foreground)" }}>LV{m.clearance_level}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent Posts */}
+        <div className="card">
+          <div className="card-header">
+            <div className="card-title" style={{ fontSize: "0.875rem" }}>最近のレポート</div>
+          </div>
+          <div className="card-content">
+            {recentPosts.length === 0 ? (
+              <div className="font-mono" style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>レポートなし</div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                {recentPosts.map(p => (
+                  <div key={p.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", paddingBottom: "0.75rem" }}>
+                    <div style={{ fontSize: "0.825rem", color: "white", fontWeight: 600, marginBottom: "0.2rem" }}>{p.title || "（無題）"}</div>
+                    <div style={{ fontSize: "0.72rem", color: "var(--muted-foreground)", overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const }}>{p.body}</div>
+                    <div className="font-mono" style={{ fontSize: "0.6rem", color: "rgba(255,255,255,0.25)", marginTop: "0.25rem" }}>
+                      {p.author_name} — {new Date(p.created_at).toLocaleDateString("ja-JP")}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Transfer button */}
+      <div style={{ marginTop: "1.5rem", textAlign: "right" }}>
+        <Link href="/division-transfer"
+          style={{ display: "inline-block", padding: "0.5rem 1.25rem", border: `1px solid ${meta.color}60`, color: meta.color, textDecoration: "none", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.72rem", transition: "all 0.2s" }}>
+          この部門への移動申請 →
+        </Link>
+      </div>
+    </div>
+  );
+}
