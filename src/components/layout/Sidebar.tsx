@@ -70,17 +70,12 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/bulletin",   label: "掲示板",         icon: "◫", requiredLevel: 1, section: "基本" },
   { href: "/divisions",  label: "部門一覧",       icon: "▤", requiredLevel: 1, section: "機関情報" },
   { href: "/history",    label: "活動履歴",       icon: "◫", requiredLevel: 1, section: "機関情報" },
-  { href: "/codex",      label: "コーデックス",   icon: <IconDictionary />, requiredLevel: 1, section: "機関情報" },
   { href: "/novel",      label: "記録文庫",       icon: "◧", requiredLevel: 1, section: "機関情報" },
-  { href: "/entities",   label: "実体カタログ",   icon: "◈", requiredLevel: 2, section: "データベース" },
-  { href: "/modules",    label: "モジュール",     icon: "⬡", requiredLevel: 2, section: "データベース" },
-  { href: "/locations",  label: "場所",           icon: "◉", requiredLevel: 1, section: "データベース" },
-  { href: "/statistics", label: "統計",           icon: "▦", requiredLevel: 2, section: "データベース" },
+  { href: "/database",   label: "データベース",   icon: "◈", requiredLevel: 1, section: "データベース" },
   { href: "/skill-tree", label: "スキルツリー",   icon: "◫", requiredLevel: 1, section: "成長" },
   { href: "/missions",   label: "収束案件",       icon: "▲", requiredLevel: 4, section: "機密" },
   { href: "/search",     label: "全文検索",       icon: "◈", requiredLevel: 4, section: "機密" },
   { href: "/classified", label: "機密情報",       icon: "■", requiredLevel: 5, section: "機密" },
-  { href: "/personnel",  label: "人員ファイル",   icon: "◉", requiredLevel: 5, section: "機密" },
 ];
 
 export default function Sidebar() {

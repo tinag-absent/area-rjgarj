@@ -7,8 +7,8 @@ export default function ServiceWorkerRegistration() {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/sw.js")
-        .then((registration) => {
-          console.log("[SW] 登録成功:", registration.scope);
+        .then(() => {
+          // SW登録成功
         })
         .catch((error) => {
           console.error("[SW] 登録失敗:", error);

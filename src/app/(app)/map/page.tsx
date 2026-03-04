@@ -38,8 +38,8 @@ async function loadMapData() {
     }
   } catch { /* fall through */ }
   try {
-    const { default: data } = await import("../../../../public/data/map-incidents.json");
-    return data as { incidents: Incident[]; statistics: Statistics };
+    const data = JSON.parse(require("fs").readFileSync(require("path").join(process.cwd(), "public", "data", "map-incidents.json"), "utf-8")) as { incidents: Incident[]; statistics: Statistics };
+    return data;
   } catch {
     return { incidents: [], statistics: { total: 0, critical: 0, warning: 0, safe: 0 } };
   }

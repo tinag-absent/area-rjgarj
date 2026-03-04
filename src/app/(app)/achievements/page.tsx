@@ -17,31 +17,38 @@ type Badge = {
   secret?: boolean;
 };
 
-const BADGES: Badge[] = [
-  { id: "first_step",    icon: "🚀", color: "#10b981", name: "初陣",           desc: "初めてログインした",                     check: (d) => d.loginCount >= 1 },
-  { id: "week_streak",   icon: "🔥", color: "#f97316", name: "7日連続",         desc: "7日間連続でログインした",                 check: (d) => d.streak >= 7 },
-  { id: "veteran",       icon: "⭐", color: "#ffd740", name: "ベテラン機関員",   desc: "50回以上ログインした",                   check: (d) => d.loginCount >= 50 },
-  { id: "division_join", icon: "🏛", color: "#3b82f6", name: "配属完了",         desc: "部門に配属された",                       check: (d) => !!d.flags["division_joined"] },
-  { id: "level2",        icon: "📈", color: "#a855f7", name: "正規要員",         desc: "LEVEL 2 に到達した",                     check: (_, u) => u.level >= 2 },
-  { id: "level3",        icon: "🌟", color: "#f59e0b", name: "上級要員",         desc: "LEVEL 3 に到達した",                     check: (_, u) => u.level >= 3 },
-  { id: "level4",        icon: "💎", color: "#06b6d4", name: "機密取扱者",       desc: "LEVEL 4 に到達した",                     check: (_, u) => u.level >= 4 },
-  { id: "level5",        icon: "👑", color: "#ef4444", name: "最高幹部",         desc: "LEVEL 5 に到達した",                     check: (_, u) => u.level >= 5 },
-  { id: "xp500",         icon: "⚡", color: "#10b981", name: "XP 500",          desc: "累計500 XPを獲得した",                   check: (d) => (d.variables["total_xp"] ?? 0) >= 500 },
-  { id: "xp1000",        icon: "⚡", color: "#ffd740", name: "XP 1000",         desc: "累計1000 XPを獲得した",                  check: (d) => (d.variables["total_xp"] ?? 0) >= 1000 },
-  { id: "tutorial",      icon: "📖", color: "#8b5cf6", name: "訓練修了",         desc: "チュートリアルを完了した",                check: (d) => !!d.flags["tutorial_complete"] },
-  { id: "phase1",        icon: "🔓", color: "#ef4444", name: "フェーズ1解放",    desc: "フェーズ1のコンテンツを解放した",          check: (d) => !!d.flags["phase1_unlocked"], secret: true },
-  { id: "phase2",        icon: "🔴", color: "#dc2626", name: "フェーズ2解放",    desc: "フェーズ2のコンテンツを解放した",          check: (d) => !!d.flags["phase2_unlocked"], secret: true },
-  { id: "anomaly_high",  icon: "☢️", color: "#ef4444", name: "異常体",          desc: "異常スコアが高い状態に達した",             check: (d) => !!d.flags["anomaly_detected"], secret: true },
-  { id: "observer",      icon: "👁", color: "#8b5cf6", name: "観測された者",     desc: "観測者に認識された",                      check: (d) => !!d.flags["observer_warned"], secret: true },
-];
+// BADGES はDBから動的取得（③ 実績エンジン化）
+// evaluateBadge: DB定義の条件からクライアントサイドで判定
+function evaluateBadge(
+  badge: { conditionType: string; conditionKey: string; conditionValue: string; conditionMin: number },
+  data: AchievData,
+  user: { level: number; xp: number }
+): boolean {
+  switch (badge.conditionType) {
+    case "loginCount": return data.loginCount >= badge.conditionMin;
+    case "streak":     return data.streak     >= badge.conditionMin;
+    case "level":      return user.level      >= badge.conditionMin;
+    case "xp":         return user.xp         >= badge.conditionMin;
+    case "flag":       return !!data.flags[badge.conditionKey];
+    case "variable":   return (data.variables[badge.conditionKey] ?? 0) >= badge.conditionMin;
+    default: return false;
+  }
+}
 
 export default function AchievementsPage() {
   const { user } = useUserStore();
   const [data, setData] = useState<AchievData | null>(null);
+  const [dbBadges, setDbBadges] = useState<(Badge & { conditionType:string; conditionKey:string; conditionValue:string; conditionMin:number })[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/users/me/achievements")
+    // ③ DBから実績定義を動的取得
+    fetch("/api/achievements", { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(r => r.ok ? r.json() : [])
+      .then((defs: (Badge & { conditionType:string; conditionKey:string; conditionValue:string; conditionMin:number })[]) => {
+        if (Array.isArray(defs) && defs.length > 0) setDbBadges(defs);
+      }).catch(() => {});
+    fetch("/api/users/me/achievements", { headers: { "X-Requested-With": "XMLHttpRequest" } })
       .then(r => r.ok ? r.json() : null)
       .then(d => { if (d) setData(d); })
       .catch(() => {})
@@ -54,9 +61,10 @@ export default function AchievementsPage() {
     </div>
   );
 
-  const unlocked = data && user ? BADGES.filter(b => b.check(data, user)) : [];
+  const activeBadges = dbBadges.length > 0 ? dbBadges : [];
+  const unlocked = data && user ? activeBadges.filter(b => evaluateBadge(b, data, user)) : [];
   const unlockedIds = new Set(unlocked.map(b => b.id));
-  const total = BADGES.filter(b => !b.secret).length;
+  const total = activeBadges.filter(b => !b.secret).length;
   const unlockedNonSecret = unlocked.filter(b => !b.secret).length;
 
   return (
@@ -77,7 +85,7 @@ export default function AchievementsPage() {
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: "0.75rem" }}>
-        {BADGES.map(badge => {
+        {activeBadges.map(badge => {
           const earned = unlockedIds.has(badge.id);
           const isSecret = badge.secret && !earned;
           return (

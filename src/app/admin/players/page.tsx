@@ -14,8 +14,8 @@ const LEVEL_COLORS: Record<number, [string, string]> = {
 const LEVEL_TITLES: Record<number, string> = {
   0: "見習い", 1: "補助要員", 2: "正規要員", 3: "上級要員", 4: "機密取扱者", 5: "最高幹部",
 };
-const ARG_KEYWORDS = ["海は削れている", "海蝕プロジェクト", "収束", "西堂", "次元", "監視されている", "封印", "観測者は存在しない", "記憶", "境界", "消滅"];
-const KNOWN_FLAGS = ["first_login_done", "tutorial_complete", "division_joined", "phase1_unlocked", "phase2_unlocked", "anomaly_detected", "observer_warned", "collapse_imminent"];
+const DEFAULT_ARG_KEYWORDS = ["収束","境界","消滅","封印","記憶"];
+const DEFAULT_KNOWN_FLAGS = ["first_login_done","tutorial_complete","division_joined","phase1_unlocked","phase2_unlocked","anomaly_detected","observer_warned","collapse_imminent"];
 
 type Player = {
   id: string; agentId: string; name: string; role: string; status: string;
@@ -27,6 +27,7 @@ type PlayerDetail = Player & {
   observerLoad: number; streak: number;
   flags: Record<string, unknown>; variables: Record<string, number>;
   events: { id: string; firedAt: string }[];
+  secretQuestion?: string | null;
 };
 
 const S = {
@@ -79,6 +80,10 @@ export default function PlayersPage() {
   const [filterMode, setFilterMode] = useState("all");
   const [activeTab, setActiveTab] = useState("profile");
   const [loading, setLoading] = useState(true);
+  const [argKeywords, setArgKeywords] = useState<string[]>(DEFAULT_ARG_KEYWORDS);
+  const [knownFlagDefs, setKnownFlagDefs] = useState<{key:string;label:string;category:string}[]>(
+    DEFAULT_KNOWN_FLAGS.map(k=>({key:k,label:k,category:"story"}))
+  );
   const [notifTitle, setNotifTitle] = useState("");
   const [resetPw, setResetPw] = useState("");
   const [resetResult, setResetResult] = useState<{ok: boolean; msg: string} | null>(null);
@@ -323,10 +328,11 @@ export default function PlayersPage() {
                   <div>
                     <div style={{ fontFamily: S.mono, fontSize: 10, color: S.text3, letterSpacing: ".1em", marginBottom: 10, paddingBottom: 6, borderBottom: `1px solid ${S.border}` }}>// フラグ状態</div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                      {KNOWN_FLAGS.map(f => {
+                      {knownFlagDefs.map(fd => {
+                        const f = fd.key;
                         const on = !!selected.flags[f];
                         return (
-                          <span key={f} style={{ fontFamily: S.mono, fontSize: 10, padding: "4px 10px", border: `1px solid ${on ? S.green : S.border2}`, color: on ? S.green : S.text3, background: on ? "rgba(0,230,118,.05)" : "transparent", display: "flex", alignItems: "center", gap: 4 }}>
+                          <span key={f} title={fd.label!==fd.key?fd.label:undefined} style={{ fontFamily: S.mono, fontSize: 10, padding: "4px 10px", border: `1px solid ${on ? S.green : S.border2}`, color: on ? S.green : S.text3, background: on ? "rgba(0,230,118,.05)" : "transparent", display: "flex", alignItems: "center", gap: 4 }}>
                             <span style={{ width: 5, height: 5, borderRadius: "50%", background: on ? S.green : S.text3, display: "inline-block" }} /> {f}
                           </span>
                         );
@@ -397,6 +403,37 @@ export default function PlayersPage() {
                   <div style={{ fontFamily: S.mono, fontSize: 10, color: S.text3, marginBottom: 6 }}>
                     対象: <span style={{ color: S.cyan }}>{selected.agentId}</span> / {selected.name}
                   </div>
+
+                  {/* ③ 秘密の質問ステータス */}
+                  <div style={{ padding: "10px 14px", background: "rgba(0,212,255,0.04)", border: `1px solid ${selected.secretQuestion ? "rgba(0,212,255,0.2)" : "rgba(255,82,82,0.3)"}`, fontFamily: S.mono, fontSize: 10, lineHeight: 1.7 }}>
+                    <div style={{ color: S.text3, marginBottom: 4, letterSpacing: ".1em" }}>SECRET QUESTION</div>
+                    {selected.secretQuestion ? (
+                      <>
+                        <div style={{ color: S.cyan, marginBottom: 6 }}>{selected.secretQuestion}</div>
+                        <button
+                          onClick={async () => {
+                            if (!confirm(selected.agentId + " の秘密の質問をリセットしますか？\nパスキー回復が使用不可になります。")) return;
+                            try {
+                              const res = await apiFetch(`/api/admin/users/${selected.id}`, {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ clearSecretQuestion: true }),
+                              });
+                              if (res.ok) {
+                                setSelected(prev => prev ? { ...prev, secretQuestion: null } : prev);
+                                setToast({ msg: "秘密の質問をリセットしました", type: "ok" });
+                              }
+                            } catch { setToast({ msg: "通信エラー", type: "err" }); }
+                          }}
+                          style={{ background: "none", border: "1px solid rgba(255,82,82,0.4)", color: "#ff8a80", fontFamily: S.mono, fontSize: 10, padding: "4px 10px", cursor: "pointer" }}>
+                          ✕ 秘密の質問をリセット
+                        </button>
+                      </>
+                    ) : (
+                      <div style={{ color: "#ff8a80" }}>⚠ 未設定 — パスキー回復不可</div>
+                    )}
+                  </div>
+
                   <div style={{ padding: "10px 14px", background: "rgba(255,82,82,0.06)", border: "1px solid rgba(255,82,82,0.2)", fontFamily: S.mono, fontSize: 10, color: "#ff8a80", lineHeight: 1.6 }}>
                     ⚠ この操作は機関員のパスキーを強制的に変更します。<br />
                     本人が新しいパスキーでログインできるよう、設定後は必ず本人に通知してください。
@@ -439,6 +476,40 @@ export default function PlayersPage() {
                       {resetResult.ok ? "✓" : "✗"} {resetResult.msg}
                     </div>
                   )}
+
+                  {/* 秘密の質問 */}
+                  <div style={{ marginTop: 8, padding: "12px 14px", background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.15)" }}>
+                    <div style={{ fontFamily: S.mono, fontSize: 10, color: S.text3, marginBottom: 6, letterSpacing: ".1em" }}>秘密の質問ステータス</div>
+                    {selected.secretQuestion ? (
+                      <>
+                        <div style={{ fontFamily: S.mono, fontSize: 11, color: S.cyan, marginBottom: 10 }}>
+                          ◈ {selected.secretQuestion}
+                        </div>
+                        <button
+                          onClick={async () => {
+                            if (!confirm(selected.agentId + " の秘密の質問をリセットしますか？パスキー回復が一時的に使用不可になります。")) return;
+                            try {
+                              const res = await apiFetch(`/api/admin/users/${selected.id}`, {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ clearSecretQuestion: true }),
+                              });
+                              if (res.ok) {
+                                setSelected(s => s ? { ...s, secretQuestion: null } : s);
+                                setResetResult({ ok: true, msg: "秘密の質問をリセットしました" });
+                              }
+                            } catch { setResetResult({ ok: false, msg: "通信エラー" }); }
+                          }}
+                          style={{ background: "rgba(255,82,82,0.08)", border: "1px solid rgba(255,82,82,0.3)", color: S.red, fontFamily: S.mono, fontSize: 10, padding: "6px 14px", cursor: "pointer", letterSpacing: ".06em" }}>
+                          秘密の質問をリセット
+                        </button>
+                      </>
+                    ) : (
+                      <div style={{ fontFamily: S.mono, fontSize: 11, color: "#ff9800" }}>
+                        未設定 — パスキー回復が使用不可
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
 

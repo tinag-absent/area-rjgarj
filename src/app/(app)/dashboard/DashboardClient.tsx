@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, memo } from "react";
 import { useUserStore } from "@/store/userStore";
 import { useNotificationStore } from "@/store/notificationStore";
 import Link from "next/link";
+import { apiFetch } from "@/lib/fetch";
 import OnboardingModal from "@/components/ui/OnboardingModal";
 import { LEVEL_THRESHOLDS } from "@/lib/constants";
 
@@ -16,6 +17,7 @@ interface DashboardUser {
   level: number; xp: number; division: string; divisionName: string;
   anomalyScore: number; observerLoad: number; lastLogin: string | null;
   lastDailyBonus: string | null; loginCount: number; streak: number;
+  hasSecretQuestion: boolean;
 }
 
 interface Notification {
@@ -65,6 +67,8 @@ export default function DashboardClient({
   const [notifications, setNotifications] = useState<Notification[]>(initialNotifs);
   const [xpAnimating, setXpAnimating] = useState(false);
   const prevXpRef = useRef<number>(0);
+  // ⑥ 秘密の質問未設定警告
+  const [showSecretWarning, setShowSecretWarning] = useState(false);
 
   const displayUser = storeUser ?? user;
   const level = displayUser.level;
@@ -110,6 +114,14 @@ export default function DashboardClient({
     prevXpRef.current = xp;
   }, [xp]);
 
+  // ⑥ 秘密の質問未設定チェック
+  useEffect(() => {
+    apiFetch("/api/users/me/secret-question")
+      .then(r => r.json())
+      .then(d => { if (!d.hasSecretQuestion) setShowSecretWarning(true); })
+      .catch(() => {});
+  }, []);
+
   async function handleDailyLogin() {
     if (dailyClaimed) return;
     const res = await fetch("/api/users/me/daily-login", { method: "POST" });
@@ -151,6 +163,28 @@ export default function DashboardClient({
         transition: "filter 2s ease",
       }}
     >
+      {/* ⑥ 秘密の質問未設定警告バナー */}
+      {showSecretWarning && (
+        <div style={{
+          padding: "0.625rem 1.25rem", marginBottom: "1rem",
+          backgroundColor: "rgba(234,179,8,0.07)",
+          border: "1px solid rgba(234,179,8,0.35)",
+          borderRadius: "4px",
+          display: "flex", alignItems: "center", justifyContent: "space-between", gap: "1rem",
+        }}>
+          <span style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: "0.72rem", color: "#eab308" }}>
+            ⚠ 秘密の質問が未設定です。パスキーを忘れた場合に回復できなくなります。
+          </span>
+          <div style={{ display: "flex", gap: "0.75rem", flexShrink: 0 }}>
+            <Link href="/settings" style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: "0.68rem", color: "#eab308", textDecoration: "underline", whiteSpace: "nowrap" }}>
+              今すぐ設定
+            </Link>
+            <button onClick={() => setShowSecretWarning(false)}
+              style={{ background: "none", border: "none", color: "rgba(234,179,8,0.4)", cursor: "pointer", fontFamily: "monospace", fontSize: "0.8rem", padding: 0 }}>✕</button>
+          </div>
+        </div>
+      )}
+
       {/* 観測者警告バナー (observerLoad > 60) */}
       {observerSurveilled && (
         <div style={{
@@ -462,6 +496,29 @@ export default function DashboardClient({
     </div>
 
     {user.loginCount <= 1 && <OnboardingModal loginCount={user.loginCount} />}
+    {!user.hasSecretQuestion && (
+      <div style={{
+        margin: "1rem 1.5rem 0",
+        background: "rgba(255,140,0,0.08)",
+        border: "1px solid rgba(255,140,0,0.35)",
+        borderRadius: "0.375rem",
+        padding: "0.75rem 1.25rem",
+        display: "flex", alignItems: "center", gap: "1rem",
+      }}>
+        <span style={{ color:"#ff8c00", fontSize:"1rem", flexShrink:0 }}>⚠</span>
+        <div style={{ flex:1, fontFamily:"'JetBrains Mono',monospace", fontSize:"0.68rem", color:"rgba(255,140,0,0.85)", lineHeight:1.5 }}>
+          パスキー回復用の<strong>秘密の質問が未設定</strong>です。パスキーを忘れた場合に回復できません。
+        </div>
+        <Link href="/settings" style={{
+          padding:"0.35rem 0.875rem", background:"rgba(255,140,0,0.15)",
+          border:"1px solid rgba(255,140,0,0.5)", color:"#ff8c00",
+          fontFamily:"'JetBrains Mono',monospace", fontSize:"0.65rem",
+          textDecoration:"none", borderRadius:"3px", whiteSpace:"nowrap",
+        }}>
+          設定する →
+        </Link>
+      </div>
+    )}
     </>
   );
 }

@@ -175,12 +175,20 @@ function RadarWidget({ stats }: { stats: { label: string; value: number }[] }) {
 // 実際のアクティビティデータは /api/users/me/activity から取得して表示すること。
 // ここでは 0 埋めのプレースホルダーを表示する。
 function ActivityCalendar() {
+  const [activityMap, setActivityMap] = useState<Record<string, number>>({});
+  useEffect(() => {
+    fetch("/api/users/me/activity", { headers: { "X-Requested-With": "XMLHttpRequest" } })
+      .then(r => r.ok ? r.json() : { activity: {} })
+      .then(d => setActivityMap(d.activity || {}))
+      .catch(() => {});
+  }, []);
+
   const today = new Date();
   const days = Array.from({ length: 52 * 7 }, (_, i) => {
     const d = new Date(today);
     d.setDate(d.getDate() - (52 * 7 - 1 - i));
-    // TODO: サーバーから実際のアクティビティ件数を取得して渡すこと
-    const activity = 0;
+    const key = d.toISOString().slice(0, 10);
+    const activity = activityMap[key] ?? 0;
     return { date: d, activity };
   });
   const colorForActivity = (n: number) => {

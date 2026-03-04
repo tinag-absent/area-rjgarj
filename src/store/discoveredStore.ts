@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-// SearchClient と同じ SearchResult 型
+// SearchResult 型（SearchClient / /api/search と共有）
 export interface DiscoveredItem {
   id: string;
   category: "mission" | "entity" | "module" | "location" | "personnel" | "novel" | "post";

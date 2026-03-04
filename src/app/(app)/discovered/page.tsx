@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useDiscoveredStore, type DiscoveredItem } from "@/store/discoveredStore";
 
-// ── カテゴリ定義（SearchClient と同一）─────────────────────────
+// ── カテゴリ定義（SearchClient / /api/search と共有）────────────
 
 const CATEGORIES = [
   { id: "all",       label: "すべて",       color: "#00ffff", icon: "◈", desc: "全データ" },

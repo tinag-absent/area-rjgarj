@@ -15,6 +15,78 @@ import { getAuthUser, unauthorized, forbidden } from "@/lib/auth";
 import { getDb, query, execute } from "@/lib/db";
 import { ALLOWED_CHAT_CHANNELS, MAX_CHAT_MESSAGE_LENGTH } from "@/lib/constants";
 import { sanitizeMultilineText } from "@/lib/sanitize";
+import { loadRules } from "@/lib/rule-engine";
+
+interface AnomalyRule {
+  id: string; name: string; triggerType: "keyword"|"flag"|"action"|"score_threshold";
+  triggerValue: string; delta: number; maxPerDay: number;
+  effectStatusThreshold: number; effectStatusChange: string;
+  notifyAdminThreshold: number; notifyMessage: string;
+}
+
+async function ensureAnomalyLogs(db: ReturnType<typeof getDb>) {
+  await execute(db, `CREATE TABLE IF NOT EXISTS anomaly_logs (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    TEXT NOT NULL,
+    rule_id    TEXT NOT NULL,
+    delta      INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`).catch(() => {});
+}
+
+async function applyAnomalyRules(db: ReturnType<typeof getDb>, userId: string, text: string) {
+  try {
+    await ensureAnomalyLogs(db);
+    const rules = await loadRules<AnomalyRule>("anomaly_rule");
+    const keywordRules = rules.filter(r => r.triggerType === "keyword" && r.delta !== 0);
+    if (keywordRules.length === 0) return;
+
+    const lower = text.toLowerCase();
+    let totalDelta = 0;
+
+    for (const rule of keywordRules) {
+      const patterns = rule.triggerValue.split("|").map(k => k.trim()).filter(Boolean);
+      if (!patterns.some(p => lower.includes(p.toLowerCase()))) continue;
+
+      if (rule.maxPerDay > 0) {
+        const oneDayAgo = new Date(Date.now() - 86_400_000).toISOString().replace("T"," ").slice(0,19);
+        const cnt = await query<{ cnt: number }>(db,
+          "SELECT COUNT(*) as cnt FROM anomaly_logs WHERE user_id=? AND rule_id=? AND created_at>?",
+          [userId, rule.id, oneDayAgo]
+        ).catch(() => [] as { cnt: number }[]);
+        if ((cnt[0]?.cnt || 0) >= rule.maxPerDay) continue;
+      }
+
+      totalDelta += rule.delta;
+      await execute(db,
+        `INSERT INTO anomaly_logs (user_id, rule_id, delta, created_at) VALUES (?,?,?,datetime('now'))`,
+        [userId, rule.id, rule.delta]
+      ).catch(() => {});
+    }
+
+    if (totalDelta === 0) return;
+
+    await execute(db,
+      `UPDATE users SET anomaly_score = MAX(0, MIN(100, anomaly_score + ?)) WHERE id=?`,
+      [totalDelta, userId]
+    ).catch(() => {});
+
+    // スコア閾値によるステータス変更
+    const thresholdRules = rules.filter(r => r.triggerType === "score_threshold" && r.effectStatusThreshold > 0 && r.effectStatusChange);
+    if (thresholdRules.length > 0) {
+      const rows = await query<{ anomaly_score: number }>(db,
+        "SELECT anomaly_score FROM users WHERE id=?", [userId]
+      ).catch(() => [] as { anomaly_score: number }[]);
+      const score = rows[0]?.anomaly_score || 0;
+      for (const tr of thresholdRules.sort((a,b) => b.effectStatusThreshold - a.effectStatusThreshold)) {
+        if (score >= tr.effectStatusThreshold && tr.effectStatusChange) {
+          await execute(db, "UPDATE users SET status=? WHERE id=?", [tr.effectStatusChange, userId]).catch(()=>{});
+          break;
+        }
+      }
+    }
+  } catch { /* anomaly rules are non-critical */ }
+}
 
 // ── チャンネルアクセス権チェック ─────────────────────────────────
 function canAccessChannel(chatId: string, userDivision: string): boolean {
@@ -130,6 +202,9 @@ export async function POST(
      VALUES (?, ?, ?, ?, 'user', datetime('now'))`,
     [chatId, user.id, user.agent_id, text]
   );
+
+  // ⑥ 異常スコア変動ルール評価（非同期・非ブロッキング）
+  applyAnomalyRules(db, user.id, text).catch(() => {});
 
   return Response.json({ ok: true }, { status: 201 });
 }

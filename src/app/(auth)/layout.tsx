@@ -2,21 +2,22 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSessionFromCookie } from "@/lib/session";
 
-export default async function AuthLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function AuthLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
   const token = cookieStore.get("kai_token")?.value;
   const session = await getSessionFromCookie(token);
 
-  if (session) {
-    redirect("/dashboard");
-  }
+  // Already authenticated — redirect to dashboard
+  if (session) redirect("/dashboard");
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div style={{
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "5rem 1rem 2rem", // top padding accounts for fixed header bar
+    }}>
       {children}
     </div>
   );

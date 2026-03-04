@@ -32,7 +32,9 @@ const TABLES = [
     consecutive_login_days INTEGER NOT NULL DEFAULT 0,
     last_login_at          TEXT,
     last_daily_bonus_at    TEXT,
-    email_verified         INTEGER NOT NULL DEFAULT 0,
+    email_verified         INTEGER NOT NULL DEFAULT 1,
+    secret_question        TEXT,
+    secret_answer_hash     TEXT,
     created_at             TEXT    NOT NULL DEFAULT (datetime('now')),
     deleted_at             TEXT
   )`,
@@ -186,7 +188,7 @@ const TABLES = [
   `CREATE INDEX IF NOT EXISTS idx_chat_logs_chat_id      ON chat_logs (chat_id, created_at)`,
   `CREATE INDEX IF NOT EXISTS idx_access_logs_created_at ON access_logs (created_at)`,
 
-  // ── メール認証トークン ─────────────────────────────────────────
+  // ── メール認証トークン（廃止済み・後方互換のため保持） ──────────────────
   `CREATE TABLE IF NOT EXISTS email_verification_tokens (
     id         TEXT    PRIMARY KEY,
     user_id    TEXT    NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -199,6 +201,12 @@ const TABLES = [
   `CREATE INDEX IF NOT EXISTS idx_email_verify_user_id ON email_verification_tokens (user_id)`,
 ];
 
+// 既存DBへの追加カラム（ALTER TABLE）
+const ALTER_STATEMENTS = [
+  `ALTER TABLE users ADD COLUMN secret_question TEXT`,
+  `ALTER TABLE users ADD COLUMN secret_answer_hash TEXT`,
+];
+
 async function migrate() {
   console.log('マイグレーション開始...');
   for (const sql of TABLES) {
@@ -208,6 +216,24 @@ async function migrate() {
                || '(statement)';
     console.log(`  ✓ ${name}`);
   }
+
+  // ALTER TABLE（カラムが既に存在する場合はエラーを無視）
+  console.log('追加カラムのマイグレーション...');
+  for (const sql of ALTER_STATEMENTS) {
+    try {
+      await db.execute(sql);
+      const col = sql.match(/ADD COLUMN (\w+)/)?.[1] || sql;
+      console.log(`  ✓ ALTER TABLE users ADD ${col}`);
+    } catch (err) {
+      if (err.message?.includes('duplicate column')) {
+        const col = sql.match(/ADD COLUMN (\w+)/)?.[1] || '?';
+        console.log(`  — ${col} は既に存在します（スキップ）`);
+      } else {
+        throw err;
+      }
+    }
+  }
+
   console.log('マイグレーション完了！');
 }
 

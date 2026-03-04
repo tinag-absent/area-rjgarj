@@ -10,7 +10,7 @@ const S = {
   mono: "'Share Tech Mono', 'Courier New', monospace",
 };
 
-const ARG_KEYWORDS = ["海は削れている", "海蝕プロジェクト", "収束", "西堂", "次元", "監視されている", "封印", "観測者は存在しない", "記憶", "境界", "消滅"];
+const DEFAULT_ARG_KEYWORDS = ["収束","境界","消滅","封印","記憶"];
 const COLORS = ["#00d4ff", "#00e676", "#ffd740", "#ce93d8", "#ff9800", "#4fc3f7", "#f06292"];
 
 type ConvoMeta = { chatId: string; msgCount: number; lastMsg: string; lastAt: string; participantCount: number };
@@ -18,6 +18,7 @@ type Message = { id: string; senderId: string; senderName: string; text: string;
 
 export default function ChatViewerPage() {
   const [convos, setConvos] = useState<ConvoMeta[]>([]);
+  const [argKeywords, setArgKeywords] = useState<string[]>(DEFAULT_ARG_KEYWORDS);
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [filter, setFilter] = useState("");
@@ -79,7 +80,7 @@ export default function ChatViewerPage() {
   const stats = {
     total: convos.reduce((s, c) => s + c.msgCount, 0),
     convos: convos.length,
-    keywords: messages.filter(m => ARG_KEYWORDS.some(k => m.text.includes(k))).length,
+    keywords: messages.filter(m => argKeywords.some((k:string) => m.text.includes(k))).length,
     users: new Set(messages.map(m => m.senderId)).size,
   };
 
@@ -94,7 +95,7 @@ export default function ChatViewerPage() {
         <div style={{ overflowY: "auto", flex: 1 }}>
           {loading ? <div style={{ padding: 20, fontFamily: S.mono, fontSize: 11, color: S.text3, textAlign: "center" }}>読み込み中...</div> :
             convos.map(c => {
-              const hasArg = ARG_KEYWORDS.some(k => c.lastMsg?.includes(k));
+              const hasArg = argKeywords.some((k:string) => c.lastMsg?.includes(k));
               return (
                 <div key={c.chatId} onClick={() => selectChat(c.chatId)}
                   style={{ padding: "11px 14px", borderBottom: `1px solid ${S.border}`, cursor: "pointer", background: selectedChat === c.chatId ? "#12081e" : "transparent", borderLeft: selectedChat === c.chatId ? `2px solid ${S.purple}` : "2px solid transparent" }}>
@@ -149,7 +150,7 @@ export default function ChatViewerPage() {
             <div style={{ textAlign: "center", fontFamily: S.mono, fontSize: 11, color: S.text3, padding: 24 }}>メッセージなし</div>
           ) : filteredMsgs.map(msg => {
             const col = getUserColor(msg.senderId);
-            const argMatches = ARG_KEYWORDS.filter(k => msg.text.includes(k));
+            const argMatches = argKeywords.filter((k:string) => msg.text.includes(k));
             return (
               <div key={msg.id} style={{ display: "flex", gap: 10, maxWidth: "80%" }}>
                 <div style={{ width: 30, height: 30, borderRadius: 2, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: S.mono, fontSize: 10, fontWeight: "bold", background: `${col}22`, color: col, flexShrink: 0, alignSelf: "flex-start" }}>

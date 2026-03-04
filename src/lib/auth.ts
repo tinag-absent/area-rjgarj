@@ -10,7 +10,16 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { getDb, queryOne } from "./db";
 
-const JWT_SECRET = process.env.JWT_SECRET ?? "dev-only-jwt-secret-change-in-production";
+const JWT_SECRET = (() => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("[auth] JWT_SECRET が設定されていません。本番環境では必須です。");
+    }
+    return "dev-only-jwt-secret-change-in-production";
+  }
+  return secret;
+})();
 
 // ── JWT ──────────────────────────────────────────────────────────
 

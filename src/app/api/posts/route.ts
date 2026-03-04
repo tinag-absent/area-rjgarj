@@ -2,6 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb, query, execute } from "@/lib/db";
 import { getAuthUser } from "@/lib/server-auth";
 import { sanitizeDisplayText, sanitizeMultilineText } from "@/lib/sanitize";
+import { loadRules } from "@/lib/rule-engine";
+
+interface AnomalyKeywordRule {
+  id: string; triggerType: "keyword"; triggerValue: string; delta: number; maxPerDay: number;
+}
+
+async function applyBulletinAnomalyRules(db: ReturnType<typeof getDb>, userId: string, text: string) {
+  try {
+    const rules = await loadRules<AnomalyKeywordRule>("anomaly_rule");
+    const keywordRules = rules.filter(r => r.triggerType === "keyword" && r.delta !== 0);
+    if (!keywordRules.length) return;
+    const lower = text.toLowerCase();
+    let totalDelta = 0;
+    for (const rule of keywordRules) {
+      const patterns = rule.triggerValue.split("|").map(k=>k.trim()).filter(Boolean);
+      if (!patterns.some(p => lower.includes(p.toLowerCase()))) continue;
+      totalDelta += rule.delta;
+    }
+    if (totalDelta === 0) return;
+    await execute(db,
+      `UPDATE users SET anomaly_score = MAX(0, MIN(100, anomaly_score + ?)) WHERE id=?`,
+      [totalDelta, userId]
+    ).catch(() => {});
+  } catch { /* non-critical */ }
+}
 
 function formatPost(row: Record<string, unknown>) {
   let meta: Record<string, unknown> = {};
@@ -70,6 +95,9 @@ export async function POST(req: NextRequest) {
       INSERT INTO posts (id, user_id, title, body, status, classification, required_clearance, metadata, created_at, updated_at)
       VALUES (?, ?, ?, ?, 'published', ?, 0, ?, datetime('now'), datetime('now'))
     `, [newId, authUser.userId, title || null, body, classMap[severity] || "UNCLASSIFIED", metadata]);
+
+    // ⑤ 掲示板投稿にARGキーワード異常スコアルールを適用
+    applyBulletinAnomalyRules(db, authUser.userId, [title||"", body||""].join(" ")).catch(() => {});
 
     return NextResponse.json(formatPost({
       id: newId, title, body, status: "published",

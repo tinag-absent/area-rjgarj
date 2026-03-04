@@ -18,6 +18,7 @@ async function getDashboardData(userId: string) {
              u.login_count, u.consecutive_login_days,
              u.last_login_at, u.last_daily_bonus_at,
              u.division_id,
+             u.secret_question,
              d.slug AS division_slug, d.name AS division_name,
              COALESCE((SELECT CAST(sv.var_value AS INTEGER) FROM story_variables sv
                WHERE sv.user_id = u.id AND sv.var_key = 'total_xp'), 0) AS xp_total
@@ -79,6 +80,7 @@ export default async function DashboardPage() {
     lastDailyBonus: user.last_daily_bonus_at,
     loginCount: user.login_count || 0,
     streak: user.consecutive_login_days || 0,
+    hasSecretQuestion: !!user.secret_question,
   };
 
   return <DashboardClient user={formattedUser} notifications={notifications} divisionMembers={divisionMembers} />;

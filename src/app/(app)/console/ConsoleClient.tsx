@@ -2,13 +2,10 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useUserStore } from "@/store/userStore";
 
-interface AdminUser {
-  id: string; agentId: string; name: string; role: string; status: string;
-  level: number; xp: number; anomalyScore: number; division: string;
-  divisionName: string; loginCount: number; lastLogin: string;
-}
+// ══════════════════════════════════════════════════════════════════════════════
+// 型定義
+// ══════════════════════════════════════════════════════════════════════════════
 
 interface ConsoleUser {
   uuid: string;
@@ -27,614 +24,762 @@ interface ConsoleUser {
   streak: number;
 }
 
-interface ConsoleLine {
-  id: number;
+/** 単語単位の表示設定 */
+interface Word {
   text: string;
-  type: "success" | "error" | "warning" | "info" | "system";
-  welcome?: boolean;
+  color?: string;   // 省略時はライン基本色
+  bold?: boolean;
+  glow?: boolean;   // テキストシャドウを付けるか
 }
 
-const ASCII_LOGO = `
-    ██╗  ██╗ █████╗ ██╗███████╗██╗  ██╗ ██████╗ ██╗  ██╗██╗   ██╗
+/** 埋め込みタグの種類 */
+type TagType = "info-panel" | "warning-box" | "file-view" | "data-table";
+
+/** 埋め込みパネルタグ */
+interface EmbedTag {
+  tagType: TagType;
+  title?: string;
+  rows: string[];   // 表示する行
+  accent?: string;  // パネルの色
+}
+
+/** 一行の出力データ */
+interface OutputLine {
+  words: Word[];
+  baseColor?: string;
+  tag?: EmbedTag;   // この行の後に表示するタグ
+}
+
+/** スクリプトの1ターン */
+interface ScriptTurn {
+  /** 入力欄に最初から入っている文字（読み取り専用） */
+  preset: string;
+  /** 送信ボタンを押してから出力が始まるまでの遅延(ms) */
+  lagMs?: number;
+  /** 出力行 */
+  output: OutputLine[];
+  /** true = このターンが最後 → 送信後にボタンをロック */
+  final?: boolean;
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// スクリプト定義
+// ここを書き換えてシナリオを組む
+// ══════════════════════════════════════════════════════════════════════════════
+
+function buildScript(user: ConsoleUser): ScriptTurn[] {
+  return [
+    // ── ターン 1: 起動 / 認証 ────────────────────────────────────────────
+    {
+      preset: `ident --agent ${user.agentId} --init`,
+      lagMs: 900,
+      output: [
+        {
+          words: [
+            { text: "IDENTITY", color: "#0ff", bold: true, glow: true },
+            { text: "VERIFICATION", color: "#0ff", bold: true, glow: true },
+            { text: "PROTOCOL", color: "#0a0" },
+            { text: "INITIATED", color: "#0a0" },
+          ],
+        },
+        {
+          words: [
+            { text: "Resolving agent record", color: "#0a0" },
+            { text: "…", color: "#0a0" },
+            { text: user.agentId, color: "#0f0", bold: true },
+          ],
+        },
+        {
+          words: [
+            { text: "Display Name :", color: "#0a0" },
+            { text: user.name, color: "#ff0", bold: true },
+          ],
+        },
+        {
+          words: [
+            { text: "Clearance    :", color: "#0a0" },
+            { text: `LEVEL ${user.level}`, color: user.level >= 4 ? "#f80" : "#0ff", bold: true, glow: true },
+          ],
+        },
+        {
+          words: [
+            { text: "Role         :", color: "#0a0" },
+            { text: user.role.toUpperCase(), color: user.role === "player" ? "#0f0" : "#f80", bold: true },
+          ],
+        },
+        {
+          words: [
+            { text: "✓", color: "#0f0", bold: true },
+            { text: "Authentication", color: "#0f0" },
+            { text: "successful.", color: "#0f0" },
+            { text: "Welcome,", color: "#0a0" },
+            { text: user.name + ".", color: "#ff0", bold: true },
+          ],
+          tag: {
+            tagType: "info-panel",
+            title: "◈ AGENT RECORD",
+            accent: "#0ff",
+            rows: [
+              `UUID          : ${user.uuid}`,
+              `Division      : ${user.divisionName || user.division || "UNASSIGNED"}`,
+              `XP Total      : ${user.xp.toLocaleString()} pts`,
+              `Anomaly Score : ${user.anomalyScore}`,
+              `Consecutive   : ${user.streak} days`,
+              `Login Count   : ${user.loginCount}`,
+              `Last Login    : ${user.lastLogin ? new Date(user.lastLogin).toLocaleString("ja-JP") : "N/A"}`,
+            ],
+          },
+        },
+      ],
+    },
+
+    // ── ターン 2: システムステータス ─────────────────────────────────────
+    {
+      preset: "sys --status --verbose",
+      lagMs: 1400,
+      output: [
+        {
+          words: [
+            { text: "Polling", color: "#0a0" },
+            { text: "system nodes", color: "#0a0" },
+            { text: "…", color: "#0a0" },
+          ],
+        },
+        {
+          words: [
+            { text: "Network  :", color: "#0a0" },
+            { text: "ONLINE", color: "#0f0", bold: true },
+            { text: "·", color: "#0a0" },
+            { text: "Core     :", color: "#0a0" },
+            { text: "NOMINAL", color: "#0f0", bold: true },
+            { text: "·", color: "#0a0" },
+            { text: "DB       :", color: "#0a0" },
+            { text: "OK", color: "#0f0", bold: true },
+          ],
+        },
+        {
+          words: [
+            { text: "⚠", color: "#ff0", bold: true, glow: true },
+            { text: "Elevated anomaly index detected in", color: "#ff0" },
+            { text: "Sector 7-C.", color: "#f80", bold: true, glow: true },
+          ],
+          tag: {
+            tagType: "warning-box",
+            title: "⚠  ANOMALY ALERT — SECTOR 7-C",
+            accent: "#f80",
+            rows: [
+              "Erosion acceleration: +3,700% above baseline",
+              "Observer Load      : CRITICAL (97 / 100)",
+              "Geological pattern : UNCLASSIFIED",
+              "",
+              "推奨アクション: 即時エージェント派遣 / 調査報告提出",
+            ],
+          },
+        },
+        {
+          words: [
+            { text: "Observer Load :", color: "#0a0" },
+            { text: `${user.observerLoad}`, color: user.observerLoad > 70 ? "#f00" : "#0f0", bold: true, glow: user.observerLoad > 70 },
+            { text: "/ 100", color: "#0a0" },
+          ],
+        },
+        {
+          words: [
+            { text: "Timestamp :", color: "#0a0" },
+            { text: new Date().toLocaleString("ja-JP"), color: "#0ff" },
+          ],
+        },
+      ],
+    },
+
+    // ── ターン 3: 機密ファイル取得 ───────────────────────────────────────
+    {
+      preset: "fetch --class=TOP_SECRET EROSION_LOG_7C",
+      lagMs: 2200,
+      output: [
+        {
+          words: [
+            { text: "Connecting", color: "#0a0" },
+            { text: "to classified archive", color: "#0a0" },
+            { text: "…", color: "#0a0" },
+          ],
+        },
+        {
+          words: [
+            { text: "ACCESS", color: "#f00", bold: true, glow: true },
+            { text: "GRANTED", color: "#0f0", bold: true },
+            { text: "—", color: "#0a0" },
+            { text: `Level ${user.level}`, color: "#0ff" },
+            { text: "clearance accepted.", color: "#0a0" },
+          ],
+        },
+        {
+          words: [
+            { text: "Decrypting", color: "#0a0" },
+            { text: "EROSION_LOG_7C.enc", color: "#ff0", bold: true },
+            { text: "…", color: "#0a0" },
+          ],
+          tag: {
+            tagType: "file-view",
+            title: "📄 EROSION_LOG_7C.enc — DECRYPTED",
+            accent: "#ff0",
+            rows: [
+              "DATE        : 2047-03-01  03:17:22 UTC+9",
+              "ORIGIN      : Sector 7-C  Node #4 Monitoring Unit",
+              "CLASSIF.    : TOP SECRET / OBSERVER CLEARANCE",
+              "INTEGRITY   : SHA-256 VERIFIED ✓",
+              "",
+              "海蝕加速現象を観測。速度は通常比+3700%。",
+              "既知のいかなる地質モデルとも合致しない。",
+              "衛星映像との照合でも現地波形は説明不能。",
+              "担当エージェントによる現地調査を強く要請する。",
+            ],
+          },
+        },
+        {
+          words: [
+            { text: "!", color: "#f00", bold: true },
+            { text: "File retrieval logged to audit trail.", color: "#ff0" },
+          ],
+        },
+      ],
+    },
+
+    // ── ターン 4: ミッション割り当て (最終) ─────────────────────────────
+    {
+      preset: `mission --assign SECTOR7C_INV --agent ${user.agentId}`,
+      lagMs: 1600,
+      final: true,
+      output: [
+        {
+          words: [
+            { text: "Processing", color: "#0a0" },
+            { text: "mission assignment", color: "#0a0" },
+            { text: "…", color: "#0a0" },
+          ],
+        },
+        {
+          words: [
+            { text: "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", color: "#0ff" },
+          ],
+        },
+        {
+          words: [
+            { text: "MISSION", color: "#0ff", bold: true, glow: true },
+            { text: "ASSIGNED", color: "#0ff", bold: true, glow: true },
+            { text: "—", color: "#0a0" },
+            { text: "SECTOR 7-C INVESTIGATION", color: "#ff0", bold: true },
+          ],
+        },
+        {
+          words: [
+            { text: "Agent", color: "#0a0" },
+            { text: user.name, color: "#0f0", bold: true },
+            { text: "has been dispatched.", color: "#0a0" },
+          ],
+          tag: {
+            tagType: "data-table",
+            title: "◈ MISSION PARAMETERS",
+            accent: "#0ff",
+            rows: [
+              "TARGET       │ Sector 7-C — Anomalous Erosion Zone",
+              "AGENT        │ " + user.agentId + " / " + user.name,
+              "PRIORITY     │ CRITICAL  [S-CLASS]",
+              "DEADLINE     │ 72 HOURS from timestamp",
+              "EQUIPMENT    │ Standard field kit + Anomaly Sensor Mk.III",
+              "INTEL LEVEL  │ " + `Level ${user.level}` + " required",
+              "BACKUP       │ On-call — request via comms",
+            ],
+          },
+        },
+        {
+          words: [
+            { text: "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━", color: "#0ff" },
+          ],
+        },
+        {
+          words: [
+            { text: "Session", color: "#0a0" },
+            { text: "locked.", color: "#f00", bold: true, glow: true },
+            { text: "Good luck,", color: "#0f0" },
+            { text: user.agentId + ".", color: "#ff0", bold: true },
+          ],
+        },
+      ],
+    },
+  ];
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// 埋め込みタグ コンポーネント
+// ══════════════════════════════════════════════════════════════════════════════
+
+function TagPanel({ tag }: { tag: EmbedTag }) {
+  const c = tag.accent ?? "#0ff";
+  return (
+    <div
+      style={{
+        margin: "0.45rem 0 0.45rem 1.4rem",
+        padding: "0.55rem 0.85rem",
+        border: `1px solid ${c}`,
+        boxShadow: `0 0 8px ${c}33, inset 0 0 6px ${c}11`,
+        backgroundColor: `${c}0d`,
+        fontFamily: "'Courier New', monospace",
+        fontSize: "0.78rem",
+        lineHeight: 1.75,
+        animation: "tagFadeIn 0.25s ease",
+      }}
+    >
+      {tag.title && (
+        <div
+          style={{
+            color: c,
+            fontWeight: "bold",
+            letterSpacing: "0.06em",
+            borderBottom: `1px solid ${c}55`,
+            paddingBottom: "0.25rem",
+            marginBottom: "0.4rem",
+            textShadow: `0 0 7px ${c}`,
+          }}
+        >
+          {tag.title}
+        </div>
+      )}
+      {tag.rows.map((row, i) => (
+        <div
+          key={i}
+          style={{
+            color: tag.tagType === "warning-box" ? "#ff0" : c,
+            whiteSpace: "pre",
+          }}
+        >
+          {row || "\u00A0"}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+// レンダリング済み出力行
+// ══════════════════════════════════════════════════════════════════════════════
+
+interface RenderedLine {
+  id: number;
+  words: (Word & { visible: boolean })[];
+  tag?: EmbedTag;
+  tagVisible: boolean;
+}
+
+let _id = 0;
+const uid = () => ++_id;
+
+// ══════════════════════════════════════════════════════════════════════════════
+// メインコンポーネント
+// ══════════════════════════════════════════════════════════════════════════════
+
+export default function ConsoleClient({ user }: { user: ConsoleUser }) {
+  const router = useRouter();
+  const script = buildScript(user);
+
+  const [turnIdx, setTurnIdx]         = useState(0);
+  const [rendered, setRendered]       = useState<RenderedLine[]>([]);
+  const [processing, setProcessing]   = useState(false);
+  const [locked, setLocked]           = useState(false);
+  const [cursorOn, setCursorOn]       = useState(true);
+
+  const outputRef = useRef<HTMLDivElement>(null);
+  const busy      = useRef(false);
+
+  const currentTurn = script[Math.min(turnIdx, script.length - 1)];
+
+  // ── カーソル点滅 ─────────────────────────────────────────────────
+  useEffect(() => {
+    const t = setInterval(() => setCursorOn(v => !v), 540);
+    return () => clearInterval(t);
+  }, []);
+
+  // ── 自動スクロール ──────────────────────────────────────────────
+  const scrollBottom = useCallback(() => {
+    requestAnimationFrame(() => {
+      if (outputRef.current) {
+        outputRef.current.scrollTop = outputRef.current.scrollHeight;
+      }
+    });
+  }, []);
+
+  useEffect(() => { scrollBottom(); }, [rendered, scrollBottom]);
+
+  // ── 初期ウェルカムテキスト ─────────────────────────────────────
+  useEffect(() => {
+    const logo =
+`    ██╗  ██╗ █████╗ ██╗███████╗██╗  ██╗ ██████╗ ██╗  ██╗██╗   ██╗
     ██║ ██╔╝██╔══██╗██║██╔════╝██║  ██║██╔═══██╗██║ ██╔╝██║   ██║
     █████╔╝ ███████║██║███████╗███████║██║   ██║█████╔╝ ██║   ██║
     ██╔═██╗ ██╔══██║██║╚════██║██╔══██║██║   ██║██╔═██╗ ██║   ██║
     ██║  ██╗██║  ██║██║███████║██║  ██║╚██████╔╝██║  ██╗╚██████╔╝
     ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝ ╚═════╝
-                      SYSTEM CONSOLE v2.1.0`;
+                      SCRIPTED SESSION v1.0`;
 
-let lineCounter = 0;
-
-export default function ConsoleClient({ user }: { user: ConsoleUser }) {
-  const isAdmin = user.role === "admin" || user.role === "super_admin";
-  const isSuperAdmin = user.role === "super_admin";
-
-  const router = useRouter();
-  const setStoreUser = useUserStore((s) => s.setUser);
-  const updateStoreUser = useUserStore((s) => s.updateUser);
-  const storeUser = useUserStore((s) => s.user);
-  const clearUser = useUserStore((s) => s.clearUser);
-
-  const [lines, setLines] = useState<ConsoleLine[]>([]);
-  const [inputValue, setInputValue] = useState("");
-  const [cmdHistory, setCmdHistory] = useState<string[]>([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
-
-  const outputRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  const addLine = useCallback((text: string, type: ConsoleLine["type"] = "system", welcome = false) => {
-    const id = ++lineCounter;
-    setLines((prev) => [...prev, { id, text, type, welcome }]);
+    const welcome: RenderedLine[] = [
+      { id: uid(), words: [{ text: logo,                                            visible: true, color: "#0f0"  }], tagVisible: false },
+      { id: uid(), words: [{ text: "═".repeat(72),                                  visible: true, color: "#0a0"  }], tagVisible: false },
+      { id: uid(), words: [{ text: "SYSTEM ACCESS GRANTED",                         visible: true, color: "#0f0", bold: true }], tagVisible: false },
+      { id: uid(), words: [{ text: `Agent : ${user.name} [${user.agentId}]`,        visible: true, color: "#0ff" }], tagVisible: false },
+      { id: uid(), words: [{ text: `Session Start : ${new Date().toLocaleString("ja-JP")}`, visible: true, color: "#0a0" }], tagVisible: false },
+      { id: uid(), words: [{ text: "═".repeat(72),                                  visible: true, color: "#0a0"  }], tagVisible: false },
+      { id: uid(), words: [{ text: "",                                               visible: true }], tagVisible: false },
+      { id: uid(), words: [{ text: "コンソールにコマンドがプリセットされています。",      visible: true, color: "#0a0" }], tagVisible: false },
+      { id: uid(), words: [{ text: "「SEND」ボタンを押して実行してください。",           visible: true, color: "#0a0" }], tagVisible: false },
+      { id: uid(), words: [{ text: "",                                               visible: true }], tagVisible: false },
+    ];
+    setRendered(welcome);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const scrollToBottom = useCallback(() => {
-    setTimeout(() => {
-      if (outputRef.current) {
-        outputRef.current.scrollTop = outputRef.current.scrollHeight;
-      }
-    }, 10);
-  }, []);
+  // ── ユーティリティ ──────────────────────────────────────────────
+  const sleep = (ms: number) => new Promise<void>(r => setTimeout(r, ms));
 
-  // Initialize welcome block
-  useEffect(() => {
-    const w = (text: string, type: ConsoleLine["type"] = "system") => {
-      const id = ++lineCounter;
-      setLines((prev) => [...prev, { id, text, type, welcome: true }]);
+  // ── ターン実行 ──────────────────────────────────────────────────
+  async function runTurn(turn: ScriptTurn) {
+    if (busy.current) return;
+    busy.current = true;
+    setProcessing(true);
+
+    // コマンドエコー
+    const echoLine: RenderedLine = {
+      id: uid(),
+      words: [
+        { text: "root@kaishoku:~#", visible: true, color: "#0a0" },
+        { text: " " + turn.preset,  visible: true, color: "#0f0", bold: true },
+      ],
+      tagVisible: false,
     };
-    w(ASCII_LOGO, "success");
-    w("═".repeat(80), "system");
-    w("SYSTEM ACCESS GRANTED", "success");
-    w(`User: ${user.name} [${user.agentId}]`, "info");
-    w(`Clearance Level: ${user.level}`, "info");
-    w(`Role: ${user.role.toUpperCase()}`, "info");
-    w(`Session Start: ${new Date().toLocaleString("ja-JP")}`, "system");
-    w("═".repeat(80), "system");
-    w("", "system");
-    w('Type "help" to see available commands.', "system");
-    w("", "system");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    setRendered(prev => [...prev, echoLine]);
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [lines, scrollToBottom]);
+    // 送信ラグ
+    await sleep(turn.lagMs ?? 800);
 
-  // Auto-focus input
-  useEffect(() => {
-    inputRef.current?.focus();
-  }, []);
+    // 各行を順番に出力
+    for (const outLine of turn.output) {
+      const lineId = uid();
+      const newLine: RenderedLine = {
+        id: lineId,
+        words: outLine.words.map(w => ({ ...w, visible: false })),
+        tag: outLine.tag,
+        tagVisible: false,
+      };
 
-  function handleContainerClick() {
-    inputRef.current?.focus();
-  }
+      // 行を追加（全単語非表示で）
+      setRendered(prev => [...prev, newLine]);
+      await sleep(40);
 
-  // ── Command handlers ─────────────────────────────────────────────
-
-  function cmdHelp() {
-    addLine("Available Commands:", "info");
-    addLine("", "system");
-    const cmds: [string, string][] = [
-      ["help",              "このヘルプを表示"],
-      ["clear",             "コンソール画面をクリア（起動ログは保持）"],
-      ["exit",              "ダッシュボードへ戻る"],
-      ["whoami",            "現在のユーザー情報を表示"],
-      ["status",            "詳細なユーザーステータスを表示"],
-      ["grant <xp>",        "自分にXPを付与"],
-      ["logout",            "ログアウト"],
-      ["date",              "現在の日時を表示"],
-      ["history",           "コマンド履歴を表示"],
-      ["echo <text>",       "テキストをコンソールに出力"],
-    ];
-    const adminCmds: [string, string, boolean][] = [
-      ["users",                           "ユーザー一覧 [ADMIN]",              false],
-      ["user <agentId>",                  "ユーザー詳細 [ADMIN]",              false],
-      ["level <n>",                       "クリアランスLV変更 1-5 [ADMIN]",   false],
-      ["anomaly <uuid> <score>",          "異常スコア設定 0-100 [ADMIN]",     false],
-      ["notify <target> <type> <t>|<b>",  "通知送信 [ADMIN]",                false],
-      ["fire <uuid> <eventId> [xp]",      "イベント発火 [ADMIN]",             false],
-      ["reset",                           "進行状況リセット [ADMIN]",         false],
-      ["sql <query>",                     "SQL直接実行 [SUPER_ADMIN]",        true],
-    ];
-    cmds.forEach(([cmd, desc]) => addLine(`  ${cmd.padEnd(40)} ${desc}`, "success"));
-    if (isAdmin) {
-      addLine("", "system");
-      addLine("  ── ADMIN COMMANDS ─────────────────────────────", "warning");
-      adminCmds.forEach(([cmd, desc, superOnly]) => {
-        if (superOnly && !isSuperAdmin) return;
-        addLine(`  ${cmd.padEnd(40)} ${desc}`, superOnly ? "warning" : "success");
-      });
-    }
-  }
-
-  function cmdClear() {
-    setLines((prev) => prev.filter((l) => l.welcome));
-  }
-
-  function cmdExit() {
-    addLine("Exiting console...", "warning");
-    setTimeout(() => router.push("/dashboard"), 500);
-  }
-
-  function cmdWhoami() {
-    addLine(`${user.name} [${user.agentId}]  (${user.role.toUpperCase()})`, "info");
-  }
-
-  function cmdStatus() {
-    const nextLevelXp = [0, 100, 300, 600, 1200, 2500];
-    const lv = Math.min(user.level, 5);
-    const nextXp = nextLevelXp[Math.min(lv + 1, 5)] ?? 2500;
-    addLine("═".repeat(50), "info");
-    addLine("             USER STATUS", "info");
-    addLine("═".repeat(50), "info");
-    [
-      ["Name",         user.name],
-      ["Agent ID",     user.agentId],
-      ["UUID",         user.uuid],
-      ["Division",     user.divisionName || user.division],
-      ["Role",         user.role.toUpperCase()],
-      ["Level",        String(user.level)],
-      ["XP",           `${user.xp} / ${nextXp}`],
-      ["Anomaly Score",String(user.anomalyScore)],
-      ["Observer Load",String(user.observerLoad)],
-      ["Login Count",  String(user.loginCount)],
-      ["Streak",       `${user.streak}日`],
-      ["Last Login",   user.lastLogin ? new Date(user.lastLogin).toLocaleString("ja-JP") : "N/A"],
-    ].forEach(([k, v]) => addLine(`  ${k.padEnd(16)}: ${v}`, "success"));
-    addLine("═".repeat(50), "system");
-  }
-
-  // ── Super-admin exclusive commands ──────────────────────────────
-
-  async function cmdNotify(args: string[]) {
-    // notify <target> <type> <title> | <body>
-    // e.g. notify all info "緊急通達" | "本日00:00より施設Cを封鎖します"
-    if (args.length < 3) {
-      addLine("Usage: notify <target> <type> <title> | <body>", "system");
-      addLine("  target: all | division:<slug> | level:<N> | user:<uuid>", "system");
-      addLine("  type:   info | warn | error | mission | unlock | xp", "system");
-      return;
-    }
-    const [target, type, ...rest] = args;
-    const combined = rest.join(" ");
-    const pipeIdx = combined.indexOf("|");
-    const title = (pipeIdx >= 0 ? combined.slice(0, pipeIdx) : combined).trim();
-    const body  = (pipeIdx >= 0 ? combined.slice(pipeIdx + 1) : "").trim();
-    if (!title) { addLine("title が空です", "error"); return; }
-
-    addLine(`Sending notification to ${target}...`, "system");
-    try {
-      const res = await fetch("/api/admin/notifications", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ target, type, title, body }),
-      });
-      const data = await res.json();
-      if (res.ok) addLine(`✓ ${data.message ?? `${data.sent}名に送信しました`}`, "success");
-      else addLine(`Error: ${data.error}`, "error");
-    } catch { addLine("Network error.", "error"); }
-  }
-
-  async function cmdFire(args: string[]) {
-    // fire <userId> <eventId> [xp] [flag=key:value]
-    if (args.length < 2) {
-      addLine("Usage: fire <userUuid> <eventId> [xp] [flag=key:value]", "system");
-      return;
-    }
-    const [targetUserId, eventId, xpStr, flagArg] = args;
-    const xpVal = xpStr ? parseInt(xpStr) : 0;
-    const payload: Record<string, unknown> = { userId: targetUserId, eventId };
-    if (xpVal > 0) payload.xp = xpVal;
-    if (flagArg?.startsWith("flag=")) {
-      const [k, v] = flagArg.slice(5).split(":");
-      payload.flag = k; payload.flagValue = v ?? "true";
-    }
-
-    addLine(`Firing event "${eventId}" for user ${targetUserId}...`, "system");
-    try {
-      const res = await fetch("/api/admin/fire-event", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      if (res.ok) addLine(`✓ ${data.message}`, "success");
-      else addLine(`Error: ${data.error}`, "error");
-    } catch { addLine("Network error.", "error"); }
-  }
-
-  async function cmdSql(args: string[]) {
-    if (!isSuperAdmin) { addLine("Permission denied. super_admin access required.", "error"); return; }
-    if (args.length === 0) { addLine("Usage: sql <query>", "system"); return; }
-    const sqlStr = args.join(" ");
-    addLine(`> ${sqlStr}`, "system");
-    try {
-      const res = await fetch("/api/admin/db-query", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sql: sqlStr, confirmed: true }),
-      });
-      const data = await res.json();
-      if (data.error) { addLine(`Error: ${data.error}`, "error"); return; }
-      if (data.rows && data.rows.length > 0) {
-        const cols = data.columns as string[];
-        addLine(cols.join("  |  "), "info");
-        addLine("─".repeat(cols.join("  |  ").length), "system");
-        (data.rows as Record<string, unknown>[]).slice(0, 20).forEach((row) => {
-          addLine(cols.map(c => String(row[c] ?? "NULL")).join("  |  "), "success");
-        });
-        if (data.truncated || data.rows.length === 20) addLine(`... (${data.rowsAffected}行, 表示は最大20行)`, "system");
-      } else {
-        addLine(`OK: ${data.rowsAffected ?? 0} 行影響 (${data.elapsed}ms)`, "success");
+      // 単語を1つずつ表示
+      for (let wi = 0; wi < outLine.words.length; wi++) {
+        await sleep(70);
+        setRendered(prev =>
+          prev.map(l =>
+            l.id === lineId
+              ? { ...l, words: l.words.map((w, idx) => idx === wi ? { ...w, visible: true } : w) }
+              : l
+          )
+        );
       }
-    } catch { addLine("Network error.", "error"); }
-  }
 
-  async function cmdAnomaly(args: string[]) {
-    if (!isAdmin) { addLine("Permission denied.", "error"); return; }
-    if (args.length < 2) { addLine("Usage: anomaly <userUuid> <score 0-100>", "system"); return; }
-    const [targetId, scoreStr] = args;
-    const score = parseInt(scoreStr);
-    if (isNaN(score) || score < 0 || score > 100) { addLine("Invalid score (0-100).", "error"); return; }
-    const res = await fetch(`/api/admin/users/${targetId}`, {
-      method: "PUT", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ anomalyScore: score }),
-    });
-    if (res.ok) addLine(`✓ anomaly_score → ${score}`, "success");
-    else addLine("Update failed.", "error");
-  }
-
-  async function cmdGetUser(args: string[]) {
-    if (!isAdmin) { addLine("Permission denied.", "error"); return; }
-    if (!args[0]) { addLine("Usage: user <agentId or uuid>", "system"); return; }
-    addLine(`Searching for "${args[0]}"...`, "system");
-    try {
-      const all = await fetch("/api/admin/users").then(r => r.json()) as AdminUser[];
-      const found = all.find((u: AdminUser) =>
-        u.agentId.toLowerCase() === args[0].toLowerCase() || u.id === args[0]
-      );
-      if (!found) { addLine("User not found.", "error"); return; }
-      [
-        ["Agent ID",  found.agentId],
-        ["UUID",      found.id],
-        ["Name",      found.name],
-        ["Role",      found.role],
-        ["Status",    found.status],
-        ["Level",     String(found.level)],
-        ["XP",        found.xp.toLocaleString()],
-        ["Division",  found.divisionName || found.division],
-        ["Anomaly",   String(found.anomalyScore)],
-        ["Login Count",String(found.loginCount)],
-        ["Last Login", found.lastLogin ? new Date(found.lastLogin).toLocaleString("ja-JP") : "N/A"],
-      ].forEach(([k, v]) => addLine(`  ${k.padEnd(14)}: ${v}`, "info"));
-    } catch { addLine("Network error.", "error"); }
-  }
-
-  async function cmdGrant(args: string[]) {
-    if (!args[0]) { addLine("Usage: grant <xp>", "system"); return; }
-    const amount = parseInt(args[0]);
-    if (isNaN(amount) || amount < 1) { addLine("Invalid XP amount.", "error"); return; }
-
-    addLine(`Granting ${amount} XP...`, "system");
-    try {
-      const res = await fetch("/api/users/me/xp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount }),
-      });
-      const data = await res.json();
-      if (!res.ok) { addLine(`Error: ${data.error || "サーバーエラー"}`, "error"); return; }
-
-      addLine(`✓ ${amount} XP を付与しました`, "success");
-      addLine(`  Total XP : ${data.totalXp}`, "info");
-      addLine(`  Level    : ${data.newLevel}`, "info");
-      if (data.leveledUp) {
-        addLine("", "system");
-        addLine("██████████████████████████████████████████████████", "warning");
-        addLine(`  ★  LEVEL UP! → Level ${data.newLevel}  ★`, "warning");
-        addLine("██████████████████████████████████████████████████", "warning");
+      // タグが付いている場合は少し待ってから表示
+      if (outLine.tag) {
+        await sleep(180);
+        setRendered(prev =>
+          prev.map(l => l.id === lineId ? { ...l, tagVisible: true } : l)
+        );
+        await sleep(250);
       }
-      // ストアも更新
-      updateStoreUser({ level: data.newLevel, xp: data.totalXp });
-    } catch {
-      addLine("Network error.", "error");
-    }
-  }
 
-  async function cmdUsers() {
-    if (!isAdmin) { addLine("Permission denied. Admin access required.", "error"); return; }
-    addLine("Fetching users...", "system");
-    try {
-      const res = await fetch("/api/admin/users");
-      const users = await res.json();
-      if (!res.ok) { addLine("Failed to fetch users.", "error"); return; }
-
-      addLine("═".repeat(70), "info");
-      addLine("  REGISTERED USERS", "info");
-      addLine("═".repeat(70), "info");
-      users.forEach((u: { agentId: string; name: string; role: string; level: number; divisionName: string }, i: number) => {
-        addLine(`[${String(i + 1).padStart(2)}] ${u.name.padEnd(20)} ${u.agentId.padEnd(12)} LV${u.level}  ${u.divisionName || "—"}`, "success");
-      });
-      addLine("═".repeat(70), "system");
-      addLine(`Total: ${users.length} users`, "info");
-    } catch {
-      addLine("Network error.", "error");
-    }
-  }
-
-  async function cmdLevel(args: string[]) {
-    if (!isAdmin) { addLine("Permission denied. Admin access required.", "error"); return; }
-    if (!args[0]) { addLine(`Current level: ${user.level}`, "info"); addLine("Usage: level <1-5>", "system"); return; }
-    const newLevel = parseInt(args[0]);
-    if (isNaN(newLevel) || newLevel < 1 || newLevel > 5) { addLine("Invalid level. Must be 1-5.", "error"); return; }
-
-    try {
-      const res = await fetch(`/api/admin/users/${user.uuid}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clearanceLevel: newLevel }),
-      });
-      if (!res.ok) { addLine("Update failed.", "error"); return; }
-      addLine(`Level: ${user.level} → ${newLevel}`, "success");
-      addLine("ページを再読み込みすると反映されます。", "system");
-    } catch {
-      addLine("Network error.", "error");
-    }
-  }
-
-  async function cmdReset() {
-    if (!isAdmin) { addLine("Permission denied. Admin access required.", "error"); return; }
-    addLine("WARNING: This will reset your progress!", "error");
-    addLine("Resetting...", "warning");
-    try {
-      await fetch(`/api/admin/users/${user.uuid}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clearanceLevel: 1 }),
-      });
-      addLine("✓ Level reset to 1", "success");
-      addLine("ページを再読み込みすると反映されます。", "system");
-    } catch {
-      addLine("Network error.", "error");
-    }
-  }
-
-  async function cmdLogout() {
-    addLine("Logging out...", "warning");
-    addLine("Session terminated.", "system");
-    setTimeout(async () => {
-      await fetch("/api/auth/logout", { method: "POST" });
-      clearUser();
-      router.replace("/login");
-    }, 1000);
-  }
-
-  function cmdDate() {
-    addLine(new Date().toString(), "info");
-  }
-
-  function showCmdHistory() {
-    if (cmdHistory.length === 0) { addLine("No command history.", "system"); return; }
-    addLine("Command History:", "info");
-    cmdHistory.forEach((cmd, i) => addLine(`  ${String(i + 1).padStart(3)}  ${cmd}`, "system"));
-  }
-
-  function cmdEcho(args: string[]) {
-    addLine(args.join(" "), "success");
-  }
-
-  // ── Autocomplete ─────────────────────────────────────────────────
-
-  function autocomplete() {
-    const cmds = ["help","clear","exit","whoami","status","grant","logout","users","level","reset","date","history","echo"];
-    const matches = cmds.filter(c => c.startsWith(inputValue));
-    if (matches.length === 1) {
-      setInputValue(matches[0]);
-    } else if (matches.length > 1) {
-      addLine("Possible commands:", "system");
-      matches.forEach(m => addLine(`  ${m}`, "info"));
-    }
-  }
-
-  // ── Main input handler ───────────────────────────────────────────
-
-  async function processCommand(raw: string) {
-    const parts = raw.trim().split(/\s+/);
-    const cmd = parts[0].toLowerCase();
-    const args = parts.slice(1);
-
-    addLine(`root@kaishoku:~# ${raw}`, "system");
-
-    switch (cmd) {
-      case "notify":    if (isAdmin) await cmdNotify(args); else addLine("Permission denied.", "error"); break;
-      case "fire":      if (isAdmin) await cmdFire(args); else addLine("Permission denied.", "error"); break;
-      case "sql":       await cmdSql(args); break;
-      case "anomaly":   await cmdAnomaly(args); break;
-      case "user":      await cmdGetUser(args); break;
-      case "help":      cmdHelp(); break;
-      case "clear":     cmdClear(); return;
-      case "exit":      cmdExit(); break;
-      case "whoami":    cmdWhoami(); break;
-      case "status":    cmdStatus(); break;
-      case "grant":     await cmdGrant(args); break;
-      case "logout":    await cmdLogout(); break;
-      case "users":     await cmdUsers(); break;
-      case "level":     await cmdLevel(args); break;
-      case "reset":     await cmdReset(); break;
-      case "date":      cmdDate(); break;
-      case "history":   showCmdHistory(); break;
-      case "echo":      cmdEcho(args); break;
-      default:
-        addLine(`Command not found: ${cmd}`, "error");
-        addLine("Type 'help' for available commands.", "system");
+      await sleep(100);
     }
 
-    addLine("─".repeat(80), "system");
-    addLine("", "system");
-    scrollToBottom();
-  }
+    // 区切り線
+    const sep: RenderedLine = {
+      id: uid(),
+      words: [{ text: "─".repeat(66), visible: true, color: "#0a0" }],
+      tagVisible: false,
+    };
+    const blank: RenderedLine = {
+      id: uid(),
+      words: [{ text: "", visible: true }],
+      tagVisible: false,
+    };
+    setRendered(prev => [...prev, sep, blank]);
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      const raw = inputValue.trim();
-      if (!raw) return;
-      setCmdHistory(prev => [...prev, raw]);
-      setHistoryIndex(-1);
-      setInputValue("");
-      processCommand(raw);
-    } else if (e.key === "ArrowUp") {
-      e.preventDefault();
-      setCmdHistory(hist => {
-        const idx = historyIndex < hist.length - 1 ? historyIndex + 1 : hist.length - 1;
-        setHistoryIndex(idx);
-        setInputValue(hist[hist.length - 1 - idx] ?? "");
-        return hist;
-      });
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      setCmdHistory(hist => {
-        const idx = historyIndex > 0 ? historyIndex - 1 : -1;
-        setHistoryIndex(idx);
-        setInputValue(idx < 0 ? "" : (hist[hist.length - 1 - idx] ?? ""));
-        return hist;
-      });
-    } else if (e.key === "Tab") {
-      e.preventDefault();
-      autocomplete();
+    if (turn.final) {
+      setLocked(true);
+    } else {
+      setTurnIdx(i => i + 1);
     }
+
+    setProcessing(false);
+    busy.current = false;
   }
 
-  // ── Style helpers ────────────────────────────────────────────────
+  function handleSend() {
+    if (processing || locked) return;
+    const turn = script[turnIdx];
+    if (turn) runTurn(turn);
+  }
 
-  const colorMap: Record<ConsoleLine["type"], string> = {
-    success: "#0f0",
-    error:   "#f00",
-    warning: "#ff0",
-    info:    "#0ff",
-    system:  "#0a0",
-  };
-
-  const shadowMap: Record<ConsoleLine["type"], string | undefined> = {
-    success: undefined,
-    error:   "0 0 5px #f00",
-    warning: "0 0 5px #ff0",
-    info:    "0 0 5px #0ff",
-    system:  undefined,
-  };
+  // ══════════════════════════════════════════════════════════════════
+  // レンダー
+  // ══════════════════════════════════════════════════════════════════
 
   return (
     <>
       <style>{`
-        @keyframes blink { 0%,50%{opacity:1} 51%,100%{opacity:0} }
-        @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:.8} 51%{opacity:1} 60%{opacity:.9} }
-        #console-output::-webkit-scrollbar { width: 8px; }
-        #console-output::-webkit-scrollbar-track { background: #000; }
-        #console-output::-webkit-scrollbar-thumb { background: #0f0; box-shadow: 0 0 5px #0f0; }
-        .console-input::selection { background: #0f0; color: #000; }
+        @keyframes blink    { 0%,49%{opacity:1} 50%,100%{opacity:0} }
+        @keyframes flicker  { 0%,100%{opacity:1} 93%{opacity:.85} 95%{opacity:.65} 97%{opacity:.9} }
+        @keyframes tagFadeIn{ from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:none} }
+        @keyframes wordPop  { from{opacity:0;transform:translateX(-3px)} to{opacity:1;transform:none} }
+        #con-out::-webkit-scrollbar       { width:6px }
+        #con-out::-webkit-scrollbar-track { background:#000 }
+        #con-out::-webkit-scrollbar-thumb { background:#0f0; box-shadow:0 0 4px #0f0 }
+
+        .send-btn {
+          background: transparent;
+          border: 1px solid #0f0;
+          color: #0f0;
+          font-family: 'Courier New', monospace;
+          font-size: 0.78rem;
+          padding: 0.3rem 1rem;
+          cursor: pointer;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
+          transition: background 0.12s, box-shadow 0.12s;
+        }
+        .send-btn:hover:not(:disabled) {
+          background: #0f0;
+          color: #000;
+          box-shadow: 0 0 14px #0f0;
+        }
+        .send-btn:disabled {
+          border-color: #0a0;
+          color: #0a0;
+          cursor: not-allowed;
+          opacity: 0.45;
+        }
+        .send-btn.busy {
+          border-color: #ff0;
+          color: #ff0;
+          animation: flicker 0.7s infinite;
+          cursor: wait;
+        }
+        .exit-btn {
+          background: transparent;
+          border: 1px solid #0a0;
+          color: #0a0;
+          font-family: 'Courier New', monospace;
+          font-size: 0.78rem;
+          padding: 0.3rem 0.8rem;
+          cursor: pointer;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          transition: background 0.12s;
+        }
+        .exit-btn:hover {
+          background: #0a0;
+          color: #000;
+        }
+        .word-in { animation: wordPop 0.13s ease forwards; }
       `}</style>
 
-      <div
-        onClick={handleContainerClick}
-        style={{
-          height: "100vh",
-          display: "flex",
-          flexDirection: "column",
-          padding: "1rem",
-          backgroundColor: "#000",
-          color: "#0f0",
-          fontFamily: "'Courier New', monospace",
-          overflow: "hidden",
-          paddingBottom: "2.5rem",
-          cursor: "text",
-        }}
-      >
-        {/* Header */}
-        <div style={{ borderBottom: "1px solid #0f0", paddingBottom: "0.5rem", marginBottom: "1rem", flexShrink: 0 }}>
-          <div style={{ fontSize: "1.1rem", color: "#0f0", textShadow: "0 0 10px #0f0", animation: "flicker 3s infinite", whiteSpace: "pre" }}>
-            {"╔═══════════════════════════════════════════╗\n"}
-            {"║     SEA SYSTEM CONSOLE - ROOT ACCESS     ║\n"}
-            {"╚═══════════════════════════════════════════╝"}
+      {/* CRT scanline */}
+      <div style={{
+        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 9,
+        background: "repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,0.035) 2px,rgba(0,0,0,0.035) 4px)",
+      }} />
+
+      <div style={{
+        height: "100vh",
+        display: "flex",
+        flexDirection: "column",
+        padding: "1rem 1.2rem 2.4rem",
+        backgroundColor: "#000",
+        color: "#0f0",
+        fontFamily: "'Courier New', monospace",
+        overflow: "hidden",
+        animation: "flicker 9s infinite",
+      }}>
+
+        {/* ── ヘッダー ───────────────────────────────────────────── */}
+        <div style={{
+          borderBottom: "1px solid #0f0",
+          paddingBottom: "0.5rem",
+          marginBottom: "0.75rem",
+          flexShrink: 0,
+        }}>
+          <div style={{
+            color: "#0f0",
+            textShadow: "0 0 10px #0f0",
+            fontSize: "0.85rem",
+            letterSpacing: "0.04em",
+            whiteSpace: "pre",
+          }}>
+{"╔══════════════════════════════════════════════════╗\n"}
+{"║   SEA EROSION AGENCY  —  SYSTEM CONSOLE v2.1    ║\n"}
+{"╚══════════════════════════════════════════════════╝"}
           </div>
-          <div style={{ fontSize: "0.75rem", color: "#0a0", marginTop: "0.25rem" }}>SEA EROSION AGENCY</div>
-          <div style={{ fontSize: "0.75rem", color: "#0a0" }}>Type &apos;help&apos; for commands | Type &apos;exit&apos; to return to dashboard</div>
+          <div style={{ fontSize: "0.7rem", color: "#0a0", marginTop: "0.25rem" }}>
+            {locked
+              ? "⚠  SESSION LOCKED — MISSION ASSIGNED"
+              : processing
+              ? "▌ PROCESSING …"
+              : `TURN ${turnIdx + 1} / ${script.length}   ·   下のプリセットコマンドを確認して SEND を押してください`}
+          </div>
         </div>
 
-        {/* Output */}
+        {/* ── 出力エリア ─────────────────────────────────────────── */}
         <div
-          id="console-output"
+          id="con-out"
           ref={outputRef}
           style={{
             flex: 1,
             overflowY: "auto",
-            padding: "0.5rem 0",
-            lineHeight: 1.5,
+            lineHeight: 1.7,
+            paddingBottom: "0.5rem",
           }}
         >
-          {lines.map((line) => (
-            <div
-              key={line.id}
-              style={{
-                marginBottom: "0.1rem",
+          {rendered.map(line => (
+            <div key={line.id}>
+              {/* 単語行 */}
+              <div style={{
                 whiteSpace: "pre-wrap",
                 wordWrap: "break-word",
-                color: colorMap[line.type],
-                textShadow: shadowMap[line.type],
+                minHeight: "1.3em",
+                marginBottom: "0.05rem",
                 fontSize: "0.875rem",
-              }}
-            >
-              {line.text || "\u00A0"}
+              }}>
+                {line.words.map((w, wi) =>
+                  w.visible ? (
+                    <span
+                      key={wi}
+                      className="word-in"
+                      style={{
+                        color: w.color ?? "#0f0",
+                        fontWeight: w.bold ? "bold" : "normal",
+                        textShadow: w.glow ? `0 0 7px ${w.color ?? "#0f0"}` : undefined,
+                        marginRight: "0.32em",
+                      }}
+                    >
+                      {w.text}
+                    </span>
+                  ) : (
+                    // スペース確保用プレースホルダー
+                    <span key={wi} style={{ marginRight: "0.32em", opacity: 0 }}>
+                      {w.text}
+                    </span>
+                  )
+                )}
+              </div>
+
+              {/* 埋め込みタグ */}
+              {line.tag && line.tagVisible && <TagPanel tag={line.tag} />}
             </div>
           ))}
+
+          {/* 処理中カーソル */}
+          {processing && (
+            <div style={{ color: "#0a0", fontSize: "0.8rem", marginTop: "0.3rem" }}>
+              <span style={{ animation: "blink 0.75s infinite" }}>▌</span>
+            </div>
+          )}
         </div>
 
-        {/* Input */}
-        <div style={{ borderTop: "1px solid #0f0", paddingTop: "0.5rem", display: "flex", alignItems: "center", flexShrink: 0 }}>
-          <span style={{ color: "#0f0", marginRight: "0.5rem", textShadow: "0 0 5px #0f0", whiteSpace: "nowrap", fontSize: "0.875rem" }}>
-            root@kaishoku:~#
-          </span>
-          <input
-            ref={inputRef}
-            className="console-input"
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            autoComplete="off"
-            spellCheck={false}
-            style={{
-              flex: 1,
-              background: "transparent",
-              border: "none",
-              color: "#0f0",
-              fontFamily: "'Courier New', monospace",
-              fontSize: "0.875rem",
-              outline: "none",
-              caretColor: "#0f0",
-            }}
-          />
-          <span style={{
-            display: "inline-block",
-            width: "0.55rem",
-            height: "1rem",
-            background: "#0f0",
-            animation: "blink 1s infinite",
-            verticalAlign: "text-bottom",
-          }} />
-        </div>
-
-        {/* Disclaimer */}
+        {/* ── 入力エリア ─────────────────────────────────────────── */}
         <div style={{
-          position: "absolute",
-          bottom: 0,
-          left: 0,
-          right: 0,
-          padding: "0.4rem",
-          textAlign: "center",
-          fontSize: "0.625rem",
-          color: "rgba(0,255,0,0.4)",
-          borderTop: "1px solid rgba(0,255,0,0.15)",
-          pointerEvents: "none",
+          borderTop: "1px solid #0f0",
+          paddingTop: "0.6rem",
+          flexShrink: 0,
         }}>
-          このサイトはフィクションです。現実の人物・施設・事件・場所・海蝕現象とは一切関係ありません。
+          {/* プロンプト + プリセットコマンド表示 */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            marginBottom: "0.55rem",
+            fontSize: "0.875rem",
+          }}>
+            <span style={{
+              color: "#0f0",
+              textShadow: "0 0 5px #0f0",
+              whiteSpace: "nowrap",
+              flexShrink: 0,
+            }}>
+              root@kaishoku:~#
+            </span>
+
+            {/* 読み取り専用プリセット表示 */}
+            <div style={{
+              flex: 1,
+              color: locked ? "#0a0" : "#0f0",
+              userSelect: "none",
+              opacity: locked ? 0.5 : 1,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}>
+              {locked ? (
+                <span style={{ color: "#f00" }}>// SESSION LOCKED — NO FURTHER COMMANDS</span>
+              ) : processing ? (
+                <span style={{ color: "#ff0" }}>{currentTurn.preset}</span>
+              ) : (
+                <>
+                  <span>{currentTurn.preset}</span>
+                  <span style={{
+                    display: "inline-block",
+                    width: "0.5rem",
+                    height: "0.9rem",
+                    background: "#0f0",
+                    marginLeft: "1px",
+                    verticalAlign: "text-bottom",
+                    opacity: cursorOn ? 1 : 0,
+                    transition: "opacity 0.1s",
+                  }} />
+                </>
+              )}
+            </div>
+          </div>
+
+          {/* ボタン行 */}
+          <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
+            <button
+              className="exit-btn"
+              onClick={() => router.push("/dashboard")}
+            >
+              EXIT
+            </button>
+            <button
+              className={`send-btn${processing ? " busy" : ""}`}
+              onClick={handleSend}
+              disabled={locked || processing}
+            >
+              {processing ? "PROCESSING…" : locked ? "LOCKED" : "SEND  ↵"}
+            </button>
+          </div>
         </div>
+      </div>
+
+      {/* フッター免責 */}
+      <div style={{
+        position: "fixed",
+        bottom: 0, left: 0, right: 0,
+        padding: "0.3rem",
+        textAlign: "center",
+        fontSize: "0.58rem",
+        color: "rgba(0,255,0,0.3)",
+        borderTop: "1px solid rgba(0,255,0,0.1)",
+        pointerEvents: "none",
+        zIndex: 10,
+        backgroundColor: "#000",
+      }}>
+        このサイトはフィクションです。現実の人物・施設・事件・場所・海蝕現象とは一切関係ありません。
       </div>
     </>
   );

@@ -4,6 +4,17 @@ import { useState, useEffect } from "react";
 import { useUserStore } from "@/store/userStore";
 import { apiFetch } from "@/lib/fetch";
 
+const SECRET_QUESTIONS = [
+  "幼少期に住んでいた街は？",
+  "初めて飼ったペットの名前は？",
+  "最初に通った学校の名前は？",
+  "子供の頃の夢は？",
+  "好きな食べ物は？",
+  "母親の旧姓は？",
+  "入局前の職業は？",
+  "思い出の場所は？",
+] as const;
+
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
@@ -13,6 +24,7 @@ const S = {
   bg: "rgba(0,0,0,0.4)", border: "rgba(255,255,255,0.12)",
   label: { fontFamily:"'JetBrains Mono',monospace", fontSize:"0.65rem", color:"#7a8aa0", letterSpacing:"0.1em", marginBottom:"0.4rem" } as React.CSSProperties,
   input: { width:"100%", boxSizing:"border-box" as const, backgroundColor:"rgba(0,0,0,0.5)", border:"1px solid rgba(255,255,255,0.12)", color:"white", padding:"0.6rem 0.875rem", fontFamily:"'JetBrains Mono',monospace", fontSize:"0.8rem", outline:"none" } as React.CSSProperties,
+  select: { width:"100%", boxSizing:"border-box" as const, backgroundColor:"rgba(0,0,0,0.5)", border:"1px solid rgba(255,255,255,0.12)", color:"white", padding:"0.6rem 0.875rem", fontFamily:"'JetBrains Mono',monospace", fontSize:"0.8rem", outline:"none", appearance:"none" as const, cursor:"pointer" } as React.CSSProperties,
   btn: (active=true): React.CSSProperties => ({ padding:"0.6rem 1.5rem", backgroundColor: active ? "rgba(0,255,255,0.1)" : "rgba(255,255,255,0.04)", border:`1px solid ${active ? "rgba(0,255,255,0.4)" : "rgba(255,255,255,0.1)"}`, color: active ? "var(--primary)" : "#445060", fontFamily:"'JetBrains Mono',monospace", fontSize:"0.75rem", cursor: active ? "pointer" : "not-allowed", transition:"all 0.2s", letterSpacing:"0.05em" }),
 };
 
@@ -37,7 +49,7 @@ function EyeIcon({ open }: { open: boolean }) {
   );
 }
 
-function PwField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+function PwField({ label, value, onChange, placeholder = "••••••••" }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   const [show, setShow] = useState(false);
   return (
     <div>
@@ -48,7 +60,7 @@ function PwField({ label, value, onChange }: { label: string; value: string; onC
           value={value}
           onChange={e => onChange(e.target.value)}
           style={{ ...S.input, paddingRight: "2.5rem" }}
-          placeholder="••••••••"
+          placeholder={placeholder}
         />
         <button type="button" onClick={() => setShow(v => !v)}
           style={{ position:"absolute", right:"0.75rem", top:"50%", transform:"translateY(-50%)", background:"transparent", border:"none", color:"rgba(255,255,255,0.4)", cursor:"pointer", padding:0, display:"flex", alignItems:"center" }}
@@ -66,16 +78,8 @@ function InstallSection() {
   const [installMsg, setInstallMsg] = useState<{ok:boolean;text:string}|null>(null);
 
   useEffect(() => {
-    // スタンドアロンモード（インストール済み）か確認
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      setIsInstalled(true);
-      return;
-    }
-
-    const handler = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
-    };
+    if (window.matchMedia("(display-mode: standalone)").matches) { setIsInstalled(true); return; }
+    const handler = (e: Event) => { e.preventDefault(); setDeferredPrompt(e as BeforeInstallPromptEvent); };
     window.addEventListener("beforeinstallprompt", handler);
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
@@ -84,44 +88,26 @@ function InstallSection() {
     if (!deferredPrompt) return;
     await deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === "accepted") {
-      setIsInstalled(true);
-      setInstallMsg({ ok:true, text:"インストールが完了しました" });
-    } else {
-      setInstallMsg({ ok:false, text:"インストールがキャンセルされました" });
-    }
+    if (outcome === "accepted") { setIsInstalled(true); setInstallMsg({ ok:true, text:"インストールが完了しました" }); }
+    else { setInstallMsg({ ok:false, text:"インストールがキャンセルされました" }); }
     setDeferredPrompt(null);
   }
 
   return (
     <div className="card" style={{ padding:"1.5rem", display:"flex", flexDirection:"column", gap:"1rem" }}>
-      <div style={{ display:"flex", alignItems:"center", gap:"1rem" }}>
-        <div>
-          <div style={{ color:"white", fontFamily:"'Space Grotesk',sans-serif", fontSize:"0.95rem", fontWeight:600, marginBottom:"0.3rem" }}>
-            アプリをインストール
-          </div>
-          <div style={{ color:"#7a8aa0", fontFamily:"'JetBrains Mono',monospace", fontSize:"0.7rem", lineHeight:1.6 }}>
-            ホーム画面に追加してオフラインでも使用できます
-          </div>
-        </div>
+      <div>
+        <div style={{ color:"white", fontFamily:"'Space Grotesk',sans-serif", fontSize:"0.95rem", fontWeight:600, marginBottom:"0.3rem" }}>アプリをインストール</div>
+        <div style={{ color:"#7a8aa0", fontFamily:"'JetBrains Mono',monospace", fontSize:"0.7rem", lineHeight:1.6 }}>ホーム画面に追加してオフラインでも使用できます</div>
       </div>
-
       {isInstalled ? (
         <div style={{ display:"flex", alignItems:"center", gap:"0.5rem", color:"#10b981", fontFamily:"monospace", fontSize:"0.75rem" }}>
-          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-          </svg>
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
           インストール済み
         </div>
       ) : deferredPrompt ? (
         <>
-          <button onClick={handleInstall} style={{
-            ...S.btn(true),
-            display:"flex", alignItems:"center", gap:"0.6rem", width:"fit-content"
-          }}>
-            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
+          <button onClick={handleInstall} style={{ ...S.btn(true), display:"flex", alignItems:"center", gap:"0.6rem", width:"fit-content" }}>
+            <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
             INSTALL APP
           </button>
           {installMsg && <Msg ok={installMsg.ok} text={installMsg.text} />}
@@ -136,35 +122,122 @@ function InstallSection() {
   );
 }
 
+// ── 秘密の質問セクション（①）────────────────────────────────────────────
+
+function SecretQuestionSection() {
+  const [currentQuestion, setCurrentQuestion] = useState<string | null>(null);
+  const [loadingQ, setLoadingQ] = useState(true);
+  const [curPw,      setCurPw]      = useState("");
+  const [newQuestion, setNewQuestion] = useState<string>(SECRET_QUESTIONS[0]);
+  const [newAnswer,  setNewAnswer]  = useState("");
+  const [msg,        setMsg]        = useState<{ok:boolean;text:string}|null>(null);
+  const [loading,    setLoading]    = useState(false);
+
+  useEffect(() => {
+    // 現在の秘密の質問を取得（認証済みユーザー向けエンドポイント）
+    apiFetch("/api/users/me/secret-question")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setCurrentQuestion(d.question ?? null); })
+      .catch(() => {})
+      .finally(() => setLoadingQ(false));
+  }, []);
+
+  async function handleSave() {
+    setMsg(null);
+    if (!curPw || !newAnswer.trim()) { setMsg({ ok:false, text:"すべての項目を入力してください" }); return; }
+    setLoading(true);
+    try {
+      const res = await apiFetch("/api/auth/secret-question", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", "X-Requested-With": "XMLHttpRequest" },
+        body: JSON.stringify({ currentPassword: curPw, newQuestion, newAnswer: newAnswer.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setMsg({ ok:false, text: data.error ?? "エラーが発生しました" }); return; }
+      setMsg({ ok:true, text:"秘密の質問を更新しました" });
+      setCurrentQuestion(newQuestion);
+      setCurPw(""); setNewAnswer("");
+    } catch { setMsg({ ok:false, text:"通信エラーが発生しました" }); }
+    finally { setLoading(false); }
+  }
+
+  return (
+    <div className="card" style={{ padding:"1.5rem", display:"flex", flexDirection:"column", gap:"1rem" }}>
+      {!loadingQ && (
+        <div style={{ padding:"0.6rem 0.875rem", background:"rgba(0,229,255,0.04)", border:"1px solid rgba(0,229,255,0.12)", borderRadius:"3px" }}>
+          <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"0.6rem", color:"rgba(0,229,255,0.5)", letterSpacing:"0.1em", marginBottom:"0.25rem" }}>CURRENT QUESTION</div>
+          <div style={{ fontFamily:"'JetBrains Mono',monospace", fontSize:"0.75rem", color: currentQuestion ? "white" : "#ef4444" }}>
+            {currentQuestion ?? "⚠ 未設定 — パスキー回復が使用できません"}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <div style={S.label}>新しい質問</div>
+        <div style={{ position:"relative" }}>
+          <select value={newQuestion} onChange={e => setNewQuestion(e.target.value)} style={S.select}>
+            {SECRET_QUESTIONS.map(q => <option key={q} value={q}>{q}</option>)}
+          </select>
+          <span style={{ position:"absolute", right:"0.75rem", top:"50%", transform:"translateY(-50%)", color:"rgba(255,255,255,0.3)", pointerEvents:"none", fontSize:"0.7rem" }}>▾</span>
+        </div>
+      </div>
+
+      <div>
+        <div style={S.label}>新しい回答（大文字小文字区別なし）</div>
+        <input value={newAnswer} onChange={e => setNewAnswer(e.target.value)} style={S.input} placeholder="回答を入力" autoComplete="off" />
+      </div>
+
+      <PwField label="現在のパスキー（本人確認）" value={curPw} onChange={setCurPw} />
+
+      {msg && <Msg ok={msg.ok} text={msg.text} />}
+
+      <button onClick={handleSave} disabled={loading || !curPw || !newAnswer.trim()} style={S.btn(!loading && !!(curPw && newAnswer.trim()))}>
+        {loading ? "更新中..." : "UPDATE SECRET QUESTION"}
+      </button>
+    </div>
+  );
+}
+
+// ── メインコンポーネント ──────────────────────────────────────────────────
+
 export default function SettingsPage() {
   const { user, setUser } = useUserStore();
 
   // Profile
-  const [displayName, setDisplayName] = useState("");
-  const [profileMsg, setProfileMsg]   = useState<{ok:boolean;text:string}|null>(null);
+  const [displayName,    setDisplayName]    = useState("");
+  const [profileMsg,     setProfileMsg]     = useState<{ok:boolean;text:string}|null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
 
-  // Password
-  const [curPw,  setCurPw]  = useState("");
-  const [newPw,  setNewPw]  = useState("");
-  const [confPw, setConfPw] = useState("");
-  const [pwMsg,  setPwMsg]  = useState<{ok:boolean;text:string}|null>(null);
-  const [pwLoading, setPwLoading] = useState(false);
+  // Password（④ 秘密の質問が設定済みなら回答も要求）
+  const [curPw,            setCurPw]            = useState("");
+  const [newPw,            setNewPw]            = useState("");
+  const [confPw,           setConfPw]           = useState("");
+  const [secAnswer,        setSecAnswer]        = useState("");
+  const [currentQuestion,  setCurrentQuestion]  = useState<string | null>(null);
+  const [pwMsg,            setPwMsg]            = useState<{ok:boolean;text:string}|null>(null);
+  const [pwLoading,        setPwLoading]        = useState(false);
 
   useEffect(() => { if (user) setDisplayName(user.name || ""); }, [user]);
+
+  useEffect(() => {
+    apiFetch("/api/users/me/secret-question")
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d) setCurrentQuestion(d.question ?? null); })
+      .catch(() => {});
+  }, []);
 
   async function saveProfile() {
     if (!displayName.trim()) return;
     setProfileLoading(true); setProfileMsg(null);
     try {
-      const res = await apiFetch("/api/users/me", {
+      const res = await apiFetch("/api/users/me/profile", {
         method: "PUT",
         headers: { "Content-Type":"application/json" },
         body: JSON.stringify({ displayName: displayName.trim() }),
       });
       const data = await res.json();
       if (!res.ok) { setProfileMsg({ ok:false, text: data.error ?? "エラーが発生しました" }); return; }
-      setUser({ ...user!, name: data.name });
+      setUser({ ...user!, name: data.displayName ?? displayName.trim() });
       setProfileMsg({ ok:true, text:"プロフィールを更新しました" });
     } catch { setProfileMsg({ ok:false, text:"通信エラーが発生しました" }); }
     finally { setProfileLoading(false); }
@@ -174,19 +247,24 @@ export default function SettingsPage() {
     setPwMsg(null);
     if (newPw !== confPw)   { setPwMsg({ ok:false, text:"新しいパスワードが一致しません" }); return; }
     if (newPw.length < 8)   { setPwMsg({ ok:false, text:"8文字以上にしてください" }); return; }
+    if (currentQuestion && !secAnswer.trim()) {
+      setPwMsg({ ok:false, text:"秘密の質問の回答を入力してください" }); return;
+    }
     setPwLoading(true);
     try {
       const res = await apiFetch("/api/users/me/password", {
         method:"PUT", headers:{"Content-Type":"application/json"},
-        body: JSON.stringify({ currentPassword:curPw, newPassword:newPw }),
+        body: JSON.stringify({ currentPassword:curPw, newPassword:newPw, secretAnswer: secAnswer.trim() || undefined }),
       });
       const data = await res.json();
       if (!res.ok) { setPwMsg({ ok:false, text: data.error ?? "エラー" }); return; }
       setPwMsg({ ok:true, text:"パスワードを変更しました" });
-      setCurPw(""); setNewPw(""); setConfPw("");
+      setCurPw(""); setNewPw(""); setConfPw(""); setSecAnswer("");
     } catch { setPwMsg({ ok:false, text:"通信エラー" }); }
     finally { setPwLoading(false); }
   }
+
+  const pwFormValid = !!(curPw && newPw && confPw && (!currentQuestion || secAnswer.trim()));
 
   return (
     <div className="animate-fadeIn" style={{ padding:"3rem 1.5rem", maxWidth:"640px", margin:"0 auto" }}>
@@ -218,14 +296,28 @@ export default function SettingsPage() {
 
       <Section title="── PASSWORD ─────────────────────" />
       <div className="card" style={{ padding:"1.5rem", display:"flex", flexDirection:"column", gap:"1rem" }}>
-        <PwField label="現在のパスワード" value={curPw} onChange={setCurPw} />
-        <PwField label="新しいパスワード（8文字以上）" value={newPw} onChange={setNewPw} />
-        <PwField label="新しいパスワード（確認）" value={confPw} onChange={setConfPw} />
+        <PwField label="現在のパスキー" value={curPw} onChange={setCurPw} />
+        <PwField label="新しいパスキー（8文字以上）" value={newPw} onChange={setNewPw} />
+        <PwField label="新しいパスキー（確認）" value={confPw} onChange={setConfPw} />
+        {/* ④ 秘密の質問が設定済みの場合のみ回答欄を表示 */}
+        {currentQuestion && (
+          <div>
+            <div style={{ marginBottom:"0.4rem", padding:"0.45rem 0.75rem", background:"rgba(0,229,255,0.04)", border:"1px solid rgba(0,229,255,0.1)", borderRadius:"3px", fontFamily:"'JetBrains Mono',monospace", fontSize:"0.7rem", color:"rgba(0,229,255,0.7)" }}>
+              ◈ {currentQuestion}
+            </div>
+            <div style={S.label}>秘密の質問の回答（本人確認）</div>
+            <input value={secAnswer} onChange={e => setSecAnswer(e.target.value)} style={S.input} placeholder="回答を入力" autoComplete="off" />
+          </div>
+        )}
         {pwMsg && <Msg ok={pwMsg.ok} text={pwMsg.text} />}
-        <button onClick={savePassword} disabled={pwLoading || !curPw || !newPw || !confPw} style={S.btn(!pwLoading && !!(curPw && newPw && confPw))}>
+        <button onClick={savePassword} disabled={pwLoading || !pwFormValid} style={S.btn(!pwLoading && pwFormValid)}>
           {pwLoading ? "処理中..." : "CHANGE PASSWORD"}
         </button>
       </div>
+
+      {/* ① 秘密の質問設定・変更 */}
+      <Section title="── SECRET QUESTION ──────────────" />
+      <SecretQuestionSection />
     </div>
   );
 }

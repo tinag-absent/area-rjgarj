@@ -29,6 +29,13 @@ const ADMIN_TOOLS = [
   { href: "/admin/novel-editor", label: "ノベル編集", desc: "記録文庫コンテンツの管理", icon: "◧", color: "rgba(0,255,255,0.1)" },
   { href: "/admin/chat-viewer", label: "チャット閲覧", desc: "通信ログの閲覧・モデレーション", icon: "●", color: "rgba(239,68,68,0.1)" },
   { href: "/admin/db-editor", label: "DBエディタ", desc: "直接SQL実行 — super_admin 専用", icon: "⬛", color: "rgba(255,82,82,0.06)" },
+  { href: "/admin/announcements", label: "お知らせ管理", desc: "全体アナウンスの作成・編集・削除", icon: "◈", color: "rgba(56,189,248,0.1)" },
+  { href: "/admin/division-transfer", label: "部署異動管理", desc: "機関員の部署間異動の承認・処理", icon: "⇄", color: "rgba(52,211,153,0.1)" },
+  { href: "/admin/dm", label: "DMツール", desc: "プレイヤーへのダイレクトメッセージ送信", icon: "◎", color: "rgba(251,191,36,0.1)" },
+  { href: "/admin/npc-scripts", label: "NPCスクリプト", desc: "キーワード連鎖による会話フローの管理", icon: "◎", color: "rgba(206,147,216,0.1)" },
+  { href: "/admin/rule-engine",   label: "ルールエンジン",  desc: "ARGキーワード・フラグ・XP・異常スコア等のDB管理", icon: "⬡", color: "rgba(251,113,133,0.1)" },
+  { href: "/admin/achievements", label: "実績・バッジ",     desc: "バッジ定義・条件・シークレット実績の管理",         icon: "🏆", color: "rgba(255,215,64,0.1)"  },
+  { href: "/admin/skill-tree",   label: "スキルツリー",     desc: "トラック・スキル定義・前提条件・XPコストの編集",  icon: "◈", color: "rgba(163,230,53,0.1)"  },
 ];
 
 export default async function AdminHubPage() {

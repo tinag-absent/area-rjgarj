@@ -14,7 +14,7 @@ const allowedOrigins = [
 // nonce ベースへの移行を推奨。script-src は 'self' のみで外部スクリプトをブロック。
 const CSP = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-eval'",   // 'unsafe-eval': Next.js dev 用（本番では削除推奨）
+  `script-src 'self'${process.env.NODE_ENV !== "production" ? " 'unsafe-eval'" : ""}`,  // 'unsafe-eval': Next.js dev用のみ
   "style-src 'self' 'unsafe-inline'",  // 'unsafe-inline': CSS-in-JS 対応
   "img-src 'self' data: blob:",
   "font-src 'self'",

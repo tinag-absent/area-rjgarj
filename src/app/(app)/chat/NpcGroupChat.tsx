@@ -44,9 +44,11 @@ function NpcAvatar({ username, size = 32 }: { username: string; size?: number })
 function MemberSidebar({
   activeNpcs,
   typingNpcs,
+  glitchNpc,
 }: {
   activeNpcs: Set<string>;
   typingNpcs: Set<string>;
+  glitchNpc: string | null;
 }) {
   return (
     <div style={{
@@ -88,21 +90,29 @@ function MemberSidebar({
         {NPC_MEMBERS.map(npc => {
           const isTyping = typingNpcs.has(npc.username);
           const isActive = activeNpcs.has(npc.username);
+          const isGlitch = glitchNpc === npc.username;
           const c = getNpcColor(npc.username);
           return (
             <div key={npc.username} style={{
               padding: "0.5rem 0.75rem", display: "flex", alignItems: "center", gap: "0.6rem",
               transition: "background 0.2s",
               backgroundColor: isTyping ? c.glow : "transparent",
+              filter: isGlitch ? "brightness(2) hue-rotate(90deg)" : "none",
+              transition: "filter 0.1s, background 0.2s",
             }}>
               <NpcAvatar username={npc.username} size={28} />
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: "0.7rem", color: c.name, fontWeight: 600, fontFamily: "JetBrains Mono, monospace" }}>
-                  {npc.username}
+                <div style={{ fontSize: "0.7rem", color: c.name, fontWeight: 600, fontFamily: "JetBrains Mono, monospace",
+                  letterSpacing: isGlitch ? "0.15em" : "0",
+                  transition: "letter-spacing 0.1s",
+                }}>
+                  {isGlitch ? npc.username.split("").reverse().join("") : npc.username}
                 </div>
                 <div style={{ fontSize: "0.55rem", color: "rgba(255,255,255,0.35)", marginTop: "1px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {isTyping ? (
                     <span style={{ color: c?.name, opacity: 0.8 }}>入力中...</span>
+                  ) : isGlitch ? (
+                    <span style={{ color: "rgba(255,0,100,0.7)" }}>///干渉検知///</span>
                   ) : (
                     npc.personality
                   )}
@@ -212,6 +222,47 @@ function MessageBubble({ msg, agentId }: { msg: ChatMessage; agentId: string }) 
   );
 }
 
+// ── Autonomous NPC behaviors ──────────────────────────────────────────────
+
+// NPCが自律的に時々つぶやくメッセージプール
+const AUTONOMOUS_MESSAGES: Record<string, string[]> = {
+  "K-ECHO": [
+    "…収束指数に微細な変動を検知した。",
+    "次元境界モニタリング中。異常なし。",
+    "…定期報告。現在の観測値は正常範囲内。",
+    "GSI値を継続監視している。",
+    "…静寂が続いている。嵐の前触れかもしれない。",
+  ],
+  "N-VEIL": [
+    "…夢と現実の境界が、今日は薄く感じる。",
+    "あなたはいま、何を見ている？",
+    "…時間というものは、均等には流れない。",
+    "存在するということの意味を、また考えていた。",
+    "…霧の向こうには、必ず何かがある。",
+  ],
+  "L-RIFT": [
+    "システムステータス: 正常稼働中。",
+    "通信ログ確認完了。",
+    "…バックアップ処理を実行した。",
+    "センサー類: 全系統グリーン。",
+    "定期メンテナンス: スケジュール通り。",
+  ],
+  "A-PHOS": [
+    "みなさん、今日もお疲れさまです。",
+    "…無理していないか、心配しています。",
+    "休憩は取れていますか？",
+    "…困ったことがあれば、いつでも声をかけてください。",
+    "今日の気温差が大きいです。体に気をつけて。",
+  ],
+  "G-MIST": [
+    "…港に、霧が出てきた。",
+    "波の音が、いつもと違う。",
+    "…海は、何かを知っている。",
+    "今夜は船が少ない。",
+    "…沖の方に、光が見えた気がした。",
+  ],
+};
+
 // ── Main NpcGroupChat ─────────────────────────────────────────────────────
 
 export default function NpcGroupChat({ agentId }: { agentId: string }) {
@@ -221,9 +272,13 @@ export default function NpcGroupChat({ agentId }: { agentId: string }) {
   const [sending, setSending] = useState(false);
   const [typingNpcs, setTypingNpcs] = useState<Set<string>>(new Set());
   const [activeNpcs, setActiveNpcs] = useState<Set<string>>(new Set());
+  const [connectionPulse, setConnectionPulse] = useState(false);
+  const [glitchNpc, setGlitchNpc] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const typingTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const autonomousRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastAutonomousRef = useRef<Record<string, number>>({});
 
   const { data: messages = [], mutate } = useSWR<ChatMessage[]>(
     `/api/chat/${CHAT_ID}?limit=80`,
@@ -263,6 +318,80 @@ export default function NpcGroupChat({ agentId }: { agentId: string }) {
         return next;
       });
     }, durationMs);
+  }, []);
+
+  // ── 自律的なNPC発言（クライアントサイド演出 + APIで実際に投稿） ──
+  const triggerAutonomousNpc = useCallback(() => {
+    const npcs = NPC_MEMBERS;
+    const now = Date.now();
+    // 最近5分以内に喋っていないNPCから選ぶ
+    const eligible = npcs.filter(npc => {
+      const last = lastAutonomousRef.current[npc.username] ?? 0;
+      return now - last > 5 * 60 * 1000;
+    });
+    if (eligible.length === 0) return;
+
+    const npc = eligible[Math.floor(Math.random() * eligible.length)];
+    const pool = AUTONOMOUS_MESSAGES[npc.username] ?? [];
+    const msg = pool[Math.floor(Math.random() * pool.length)];
+    if (!msg) return;
+
+    lastAutonomousRef.current[npc.username] = now;
+    const delay = 1000 + Math.random() * 2000;
+
+    // タイピング演出
+    showTyping(npc.username, delay);
+
+    // APIへ投稿（npc_process経由ではなく専用エンドポイントがないのでメッセージテキストで代用）
+    setTimeout(() => {
+      apiFetch(`/api/chat/${CHAT_ID}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: msg, npcName: npc.username }),
+      })
+        .then(() => mutate())
+        .catch(() => mutate()); // エラーでも再取得してUIを更新
+    }, delay);
+  }, [showTyping, mutate]);
+
+  // 定期的にNPCを自律発言させる（45〜120秒ランダム）
+  useEffect(() => {
+    const schedule = () => {
+      const interval = 45_000 + Math.random() * 75_000;
+      autonomousRef.current = setTimeout(() => {
+        if (Math.random() < 0.7) triggerAutonomousNpc();
+        schedule();
+      }, interval);
+    };
+    // 初回は15〜40秒後に開始
+    autonomousRef.current = setTimeout(() => {
+      triggerAutonomousNpc();
+      schedule();
+    }, 15_000 + Math.random() * 25_000);
+    return () => {
+      if (autonomousRef.current) clearTimeout(autonomousRef.current);
+    };
+  }, [triggerAutonomousNpc]);
+
+  // 接続パルスアニメーション
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setConnectionPulse(true);
+      setTimeout(() => setConnectionPulse(false), 400);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // NPCアバターにランダムグリッチ効果
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (Math.random() < 0.2) {
+        const npc = NPC_MEMBERS[Math.floor(Math.random() * NPC_MEMBERS.length)];
+        setGlitchNpc(npc.username);
+        setTimeout(() => setGlitchNpc(null), 300);
+      }
+    }, 8000);
+    return () => clearInterval(interval);
   }, []);
 
   async function sendMessage(e: React.FormEvent) {
@@ -319,9 +448,18 @@ export default function NpcGroupChat({ agentId }: { agentId: string }) {
           0%, 100% { opacity: 0.6; }
           50% { opacity: 1; }
         }
+        @keyframes scanLine {
+          0% { transform: translateY(-100%); }
+          100% { transform: translateY(100vh); }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(8px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
         .npc-group-scroll::-webkit-scrollbar { width: 4px; }
         .npc-group-scroll::-webkit-scrollbar-track { background: transparent; }
         .npc-group-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
+        .npc-msg-enter { animation: fadeInUp 0.3s ease-out forwards; }
       `}</style>
 
       <div style={{
@@ -338,12 +476,15 @@ export default function NpcGroupChat({ agentId }: { agentId: string }) {
           display: "flex", alignItems: "center", gap: "0.75rem",
           backgroundColor: "rgba(0,0,0,0.4)",
           flexShrink: 0,
+          transition: "background 0.3s",
+          backgroundColor: connectionPulse ? "rgba(0,255,100,0.04)" : "rgba(0,0,0,0.4)",
         }}>
           <div style={{
             width: 10, height: 10, borderRadius: "50%",
-            backgroundColor: "#50dc78",
-            boxShadow: "0 0 8px #50dc78",
+            backgroundColor: connectionPulse ? "#a0ffb0" : "#50dc78",
+            boxShadow: connectionPulse ? "0 0 16px #50dc78" : "0 0 8px #50dc78",
             animation: "groupPulse 2s ease-in-out infinite",
+            transition: "all 0.3s",
           }} />
           <div>
             <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.8rem", fontWeight: 700, color: "white", letterSpacing: "0.05em" }}>
@@ -351,18 +492,23 @@ export default function NpcGroupChat({ agentId }: { agentId: string }) {
             </div>
             <div style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.6rem", color: "rgba(255,255,255,0.35)", marginTop: "1px" }}>
               CHANNEL: NPC_GROUP · {NPC_MEMBERS.length} エージェント参加中
+              {connectionPulse && <span style={{ color: "#50dc78", marginLeft: "0.5rem" }}>● LIVE</span>}
             </div>
           </div>
           <div style={{ marginLeft: "auto", display: "flex", gap: "0.35rem" }}>
             {NPC_MEMBERS.map(npc => {
               const c = getNpcColor(npc.username);
+              const isTypingNow = typingNpcs.has(npc.username);
               return (
                 <div key={npc.username} title={npc.username} style={{
                   width: 20, height: 20, borderRadius: "50%",
-                  backgroundColor: c.bg,
-                  border: `1.5px solid ${c.border}`,
+                  backgroundColor: isTypingNow ? c.name + "30" : c.bg,
+                  border: `1.5px solid ${isTypingNow ? c.name : c.border}`,
                   display: "flex", alignItems: "center", justifyContent: "center",
                   fontSize: "0.55rem", color: c.name,
+                  boxShadow: isTypingNow ? `0 0 8px ${c.name}` : "none",
+                  transition: "all 0.3s",
+                  animation: isTypingNow ? "groupPulse 0.8s ease-in-out infinite" : "none",
                 }}>
                   {getNpcIcon(npc.username)}
                 </div>
@@ -392,8 +538,10 @@ export default function NpcGroupChat({ agentId }: { agentId: string }) {
               </div>
             </div>
 
-            {messages.map(msg => (
-              <MessageBubble key={msg.id} msg={msg} agentId={agentId} />
+            {messages.map((msg, i) => (
+              <div key={msg.id} className="npc-msg-enter" style={{ animationDelay: i === messages.length - 1 ? "0ms" : "0ms", animationFillMode: "both" }}>
+                <MessageBubble msg={msg} agentId={agentId} />
+              </div>
             ))}
 
             {/* Typing indicators */}
@@ -428,7 +576,7 @@ export default function NpcGroupChat({ agentId }: { agentId: string }) {
           </div>
 
           {/* NPC member sidebar */}
-          <MemberSidebar activeNpcs={activeNpcs} typingNpcs={typingNpcs} />
+          <MemberSidebar activeNpcs={activeNpcs} typingNpcs={typingNpcs} glitchNpc={glitchNpc} />
         </div>
 
         {/* Input */}

@@ -1,4 +1,5 @@
 "use client";
+import React from "react";
 import { apiFetch } from "@/lib/fetch";
 
 import { useEffect, useState, useCallback } from "react";
@@ -145,6 +146,39 @@ export default function AnalyticsPage() {
             ))}
         </Card>
       </div>
+
+      {/* ⑥ CSVエクスポート */}
+      <div style={{ borderTop: "1px solid " + S.border, padding: "14px 20px", display: "flex", gap: 10, alignItems: "center" }}>
+        <span style={{ fontFamily: S.mono, fontSize: 10, color: S.text3 }}>データエクスポート</span>
+        <ExportBtn label="ユーザー一覧 CSV" endpoint="/api/admin/export?type=users" color={S.cyan} />
+        <ExportBtn label="XP履歴 CSV" endpoint="/api/admin/export?type=xp_logs" color={S.green} />
+        <ExportBtn label="フラグ一覧 CSV" endpoint="/api/admin/export?type=flags" color={S.purple} />
+        <ExportBtn label="異常スコア CSV" endpoint="/api/admin/export?type=anomaly" color={S.orange} />
+      </div>
     </div>
+  );
+}
+
+function ExportBtn({ label, endpoint, color }: { label: string; endpoint: string; color: string }) {
+  const [loading, setLoading] = React.useState(false);
+  async function doExport() {
+    setLoading(true);
+    try {
+      const res = await apiFetch(endpoint);
+      if (!res.ok) throw new Error();
+      const text = await res.text();
+      const blob = new Blob(["﻿" + text], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url; a.download = label.replace(/ /g, "_") + ".csv"; a.click();
+      URL.revokeObjectURL(url);
+    } catch { alert("エクスポートに失敗しました"); }
+    finally { setLoading(false); }
+  }
+  return (
+    <button onClick={doExport} disabled={loading}
+      style={{ background: color + "15", border: "1px solid " + color, color, fontFamily: S.mono, fontSize: 10, padding: "5px 12px", cursor: "pointer", opacity: loading ? 0.5 : 1 }}>
+      {loading ? "..." : "↓ " + label}
+    </button>
   );
 }

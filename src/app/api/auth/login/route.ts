@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
     if (dbUser.status === "suspended")
       return NextResponse.json({ error: "このアカウントは一時停止中です。" }, { status: 403 });
     if (dbUser.status === "pending")
-      return NextResponse.json({ error: "メール認証が完了していません。送信済みの認証メールをご確認ください。" }, { status: 403 });
+      return NextResponse.json({ error: "このアカウントは審査中です。管理者にお問い合わせください。" }, { status: 403 });
 
     const valid = await verifyPassword(password, dbUser.password_hash);
     if (!valid) {

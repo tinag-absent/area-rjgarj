@@ -55,8 +55,8 @@ const INCIDENT_TO_CODE: Record<string, string> = {
 
 async function loadMapData() {
   try {
-    const { default: data } = await import("../../../../../public/data/map-incidents.json");
-    return (data as { incidents: Incident[] }).incidents ?? [];
+    const data = JSON.parse(require("fs").readFileSync(require("path").join(process.cwd(), "public", "data", "map-incidents.json"), "utf-8")) as { incidents: Incident[] };
+    return data.incidents ?? [];
   } catch {
     return [];
   }

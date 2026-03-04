@@ -8,6 +8,53 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb, query, execute, transaction } from "@/lib/db";
 import { requireAdmin } from "@/lib/server-auth";
+import { loadRules } from "@/lib/rule-engine";
+
+interface LifecycleRule {
+  id: string; name: string; conditionType: "age_days"|"gsi_threshold"|"severity";
+  conditionValue: number; fromStatus: string; toStatus: string;
+  newSeverity: string; notifyAdmin: boolean;
+}
+
+interface Incident {
+  id: string; name: string; severity: string; status: string;
+  gsi?: string; timestamp?: string;
+  [key: string]: unknown;
+}
+
+const SEVERITY_ORDER: Record<string, number> = { low:1, medium:2, high:3, critical:4 };
+
+async function applyLifecycleRules(incidents: Incident[]): Promise<{ incidents: Incident[]; changed: number }> {
+  const rules = await loadRules<LifecycleRule>("incident_lifecycle");
+  if (!rules.length) return { incidents, changed: 0 };
+  const now = Date.now();
+  let changed = 0;
+  const updated = incidents.map(inc => {
+    let patched = { ...inc };
+    for (const rule of rules) {
+      // fromStatus 条件（空=全て）
+      if (rule.fromStatus && patched.status !== rule.fromStatus) continue;
+
+      let triggered = false;
+      if (rule.conditionType === "age_days" && patched.timestamp) {
+        const ageDays = (now - new Date(patched.timestamp).getTime()) / 86_400_000;
+        triggered = ageDays >= rule.conditionValue;
+      } else if (rule.conditionType === "gsi_threshold" && patched.gsi) {
+        triggered = Number(patched.gsi) >= rule.conditionValue;
+      } else if (rule.conditionType === "severity") {
+        triggered = (SEVERITY_ORDER[patched.severity] || 0) >= rule.conditionValue;
+      }
+
+      if (!triggered) continue;
+      if (rule.toStatus && rule.fromStatus !== rule.toStatus) patched.status = rule.toStatus;
+      if (rule.newSeverity) patched.severity = rule.newSeverity;
+      changed++;
+      break; // 1インシデントに1ルールのみ適用
+    }
+    return patched;
+  });
+  return { incidents: updated, changed };
+}
 
 async function ensureTable(db: ReturnType<typeof getDb>) {
   await execute(
@@ -38,15 +85,32 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ incidents: [], source: "empty" });
     }
 
-    const incidents = rows.map((r) => {
+    const rawIncidents = rows.map((r) => {
       try {
         return JSON.parse(r.data);
       } catch {
         return null;
       }
-    }).filter(Boolean);
+    }).filter(Boolean) as Incident[];
 
-    return NextResponse.json({ incidents });
+    // ③ ライフサイクルルール自動評価
+    const { incidents, changed } = await applyLifecycleRules(rawIncidents);
+    
+    // 変更があった場合は自動保存
+    if (changed > 0) {
+      for (const inc of incidents) {
+        const orig = rawIncidents.find(r => r.id === inc.id);
+        if (orig && (orig.status !== inc.status || orig.severity !== inc.severity)) {
+          await execute(db,
+            `INSERT INTO map_incidents (id, data, updated_at) VALUES (?,?,datetime('now'))
+             ON CONFLICT(id) DO UPDATE SET data=excluded.data, updated_at=excluded.updated_at`,
+            [inc.id, JSON.stringify(inc)]
+          ).catch(() => {});
+        }
+      }
+    }
+
+    return NextResponse.json({ incidents, lifecycleChanged: changed });
   } catch (err) {
     console.error("[map-incidents GET]", err);
     return NextResponse.json({ error: "取得に失敗しました" }, { status: 500 });

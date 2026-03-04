@@ -15,13 +15,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         division_slug: string; division_name: string; xp_total: number;
         login_count: number; consecutive_login_days: number;
         last_login_at: string; created_at: string;
+        secret_question: string | null;
       }>(db, `
         SELECT u.id, u.username, u.display_name, u.role, u.status,
           u.clearance_level, u.anomaly_score, u.observer_load,
+          u.secret_question,
           d.slug AS division_slug, d.name AS division_name,
           COALESCE((SELECT CAST(sv.var_value AS INTEGER) FROM story_variables sv
             WHERE sv.user_id = u.id AND sv.var_key = 'total_xp'), 0) AS xp_total,
-          u.login_count, u.consecutive_login_days, u.last_login_at, u.created_at
+          u.login_count, u.consecutive_login_days, u.last_login_at, u.created_at,
+          u.secret_question
         FROM users u LEFT JOIN divisions d ON d.id = u.division_id
         WHERE u.id = ? AND u.deleted_at IS NULL LIMIT 1
       `, [id]),
@@ -45,8 +48,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       observerLoad: u.observer_load || 0, division: u.division_slug || "",
       divisionName: u.division_name || "", loginCount: u.login_count || 0,
       streak: u.consecutive_login_days || 0, lastLogin: u.last_login_at,
-      createdAt: u.created_at, flags, variables,
+      createdAt: u.created_at, secretQuestion: u.secret_question ?? null, flags, variables,
       events: eventRows.map(e => ({ id: e.event_id, firedAt: e.fired_at })),
+      secretQuestion: u.secret_question ?? null,
     });
   } catch {
     return NextResponse.json({ error: "サーバーエラー" }, { status: 500 });
@@ -57,7 +61,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const auth = requireAdmin(req);
   if (auth instanceof NextResponse) return auth;
   const { id } = await params;
-  const { role, status, clearanceLevel, anomalyScore, displayName } = await req.json().catch(() => ({}));
+  const { role, status, clearanceLevel, anomalyScore, displayName, clearSecretQuestion } =
+    await req.json().catch(() => ({}));
   const db = getDb();
   try {
     await execute(db, `
@@ -66,9 +71,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
         status = COALESCE(?, status),
         clearance_level = COALESCE(?, clearance_level),
         anomaly_score = COALESCE(?, anomaly_score),
-        display_name = COALESCE(?, display_name)
+        display_name = COALESCE(?, display_name),
+        secret_question = CASE WHEN ? THEN NULL ELSE secret_question END,
+        secret_answer_hash = CASE WHEN ? THEN NULL ELSE secret_answer_hash END
       WHERE id = ? AND deleted_at IS NULL
-    `, [role || null, status || null, clearanceLevel ?? null, anomalyScore ?? null, displayName || null, id]);
+    `, [
+      role || null, status || null, clearanceLevel ?? null,
+      anomalyScore ?? null, displayName || null,
+      clearSecretQuestion ? 1 : 0, clearSecretQuestion ? 1 : 0,
+      id,
+    ]);
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ error: "サーバーエラー" }, { status: 500 });

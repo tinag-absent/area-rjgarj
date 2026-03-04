@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { getDb, query } from "@/lib/db";
 import LockedContent from "@/components/ui/LockedContent";
+import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = { title: "記録文庫 - 海蝕機関" };
@@ -21,20 +22,57 @@ async function loadNovelsData(userLevel: number, userFlags: string[]) {
         catch { return null; }
       }).filter(Boolean) as (Novel & { publishAt?: string; requiredFlag?: string; requiredLevel?: number })[];
       
-      // フィルタリング: publishAt・requiredFlag・requiredLevel
-      return novels.filter(n => {
-        if (n.requiredLevel && userLevel < n.requiredLevel) return false;
+      // ④ ノベル公開ルールエンジン適用
+      type NovelRuleCond = { type:string; key?:string; value?:string; minLevel?:number; minDate?:string; division?:string };
+      type NovelRule = { id:string; applyTo:string; applyValue:string; operator:string; conditions:NovelRuleCond[] };
+      let novelRules: NovelRule[] = [];
+      try {
+        const { getDb: gdb, query: q2 } = await import("@/lib/db");
+        const rdb = gdb();
+        const rrows = await q2<{ id:string; data_json:string }>(rdb,
+          "SELECT id, data_json FROM rule_engine_entries WHERE type='novel_rule' AND active=1 ORDER BY priority ASC"
+        ).catch(() => []);
+        novelRules = rrows.map(r => ({ id:r.id, ...JSON.parse(r.data_json||"{}") })) as NovelRule[];
+      } catch {}
+
+      function matchesRule(rule: NovelRule, userLvl: number, userFlgs: string[]): boolean {
+        if (!rule.conditions?.length) return true;
+        const results = rule.conditions.map(cond => {
+          if (cond.type === "level") return userLvl >= (cond.minLevel || 0);
+          if (cond.type === "flag") return userFlgs.includes(cond.key || "");
+          if (cond.type === "date") return !cond.minDate || now >= cond.minDate;
+          if (cond.type === "division") return true; // division check requires user context
+          return true;
+        });
+        return rule.operator === "OR" ? results.some(Boolean) : results.every(Boolean);
+      }
+
+      function isNovelAllowed(n: { id:string; category?:string; requiredLevel?:number; publishAt?:string; requiredFlag?:string }, userLvl: number, userFlgs: string[]): boolean {
+        // 個別フィールドチェック（既存ロジック）
+        if (n.requiredLevel && userLvl < n.requiredLevel) return false;
         if (n.publishAt && n.publishAt > now) return false;
-        if (n.requiredFlag && !userFlags.includes(n.requiredFlag)) return false;
+        if (n.requiredFlag && !userFlgs.includes(n.requiredFlag)) return false;
+        // ルールエンジン: このノベルに適用されるルールが全て通過しているか
+        const applicableRules = novelRules.filter(rule => {
+          if (rule.applyTo === "all") return true;
+          if (rule.applyTo === "category") return n.category === rule.applyValue;
+          if (rule.applyTo === "novel_id") return n.id === rule.applyValue;
+          return false;
+        });
+        for (const rule of applicableRules) {
+          if (!matchesRule(rule, userLvl, userFlgs)) return false;
+        }
         return true;
-      });
+      }
+
+      return novels.filter(n => isNovelAllowed(n, userLevel, userFlags));
     }
   } catch { /* fall through */ }
   
   // フォールバック: 静的JSON
   try {
-    const { default: data } = await import("../../../../public/data/novels-data.json");
-    return (data as { novels?: Novel[] }).novels ?? [];
+    const data = JSON.parse(require("fs").readFileSync(require("path").join(process.cwd(), "public", "data", "novels-data.json"), "utf-8")) as { novels?: Novel[] };
+    return data.novels ?? [];
   } catch {
     return [];
   }
@@ -141,13 +179,18 @@ export default async function NovelPage() {
           const isLocked = novel.securityLevel > 1 && lvl < novel.securityLevel + 1;
 
           return (
-            <div
+            <Link
               key={novel.id}
+              href={isLocked ? "#" : `/novel/${novel.id}`}
+              style={{ textDecoration: "none", display: "block" }}
+            >
+            <div
               className="card"
               style={{
                 position: "relative", overflow: "hidden",
                 opacity: isLocked ? 0.5 : 1,
-                cursor: isLocked ? "not-allowed" : "default",
+                cursor: isLocked ? "not-allowed" : "pointer",
+                transition: "box-shadow 0.2s",
               }}
             >
               <div style={{ padding: "1.5rem", display: "flex", flexDirection: "column", gap: "0.75rem" }}>
@@ -212,6 +255,7 @@ export default async function NovelPage() {
               {/* Bottom accent line */}
               <div style={{ height: "2px", background: `linear-gradient(90deg, ${cat.border}, transparent)` }} />
             </div>
+            </Link>
           );
         })}
         {novels.length === 0 && (
